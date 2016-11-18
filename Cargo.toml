@@ -1,0 +1,9 @@
+[package]
+name = "core_data_client"
+version = "0.1.0"
+authors = ["Augustus Mayo <gusmayo@gmail.com>"]
+
+[dependencies]
+hyper = "0.9.12"
+serde = "0.8"
+serde_json = "0.8"
