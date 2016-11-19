@@ -6,17 +6,17 @@ use error::CDCResult as Result;
 
 use endpoints::request::rq_get;
 
-const SLUG: &'static str = "shows";
+const SLUG: &'static str = "specials";
 
-pub struct ShowEndpoint<'a> {
+pub struct SpecialEndpoint<'a> {
     key: &'a str,
     secret: &'a str,
     base: &'a str,
 }
 
-impl<'a> ShowEndpoint<'a> {
-    pub fn new(key: &'a str, secret: &'a str, base: &'a str) -> ShowEndpoint<'a> {
-        ShowEndpoint {
+impl<'a> SpecialEndpoint<'a> {
+    pub fn new(key: &'a str, secret: &'a str, base: &'a str) -> SpecialEndpoint<'a> {
+        SpecialEndpoint {
             key: key,
             secret: secret,
             base: base,
@@ -24,13 +24,6 @@ impl<'a> ShowEndpoint<'a> {
     }
 
     pub fn get(&self, id: &str) -> Result<Value> {
-
-        rq_get(vec![self.base, SLUG, "/", id, "/"]
-            .join("")
-            .as_str())
-    }
-
-    pub fn list(&self, id: &str) -> Result<Value> {
 
         rq_get(vec![self.base, SLUG, "/", id, "/"]
             .join("")

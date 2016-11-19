@@ -6,17 +6,17 @@ use error::CDCResult as Result;
 
 use endpoints::request::rq_get;
 
-const SLUG: &'static str = "shows";
+const SLUG: &'static str = "collections";
 
-pub struct ShowEndpoint<'a> {
+pub struct CollectionEndpoint<'a> {
     key: &'a str,
     secret: &'a str,
     base: &'a str,
 }
 
-impl<'a> ShowEndpoint<'a> {
-    pub fn new(key: &'a str, secret: &'a str, base: &'a str) -> ShowEndpoint<'a> {
-        ShowEndpoint {
+impl<'a> CollectionEndpoint<'a> {
+    pub fn new(key: &'a str, secret: &'a str, base: &'a str) -> CollectionEndpoint<'a> {
+        CollectionEndpoint {
             key: key,
             secret: secret,
             base: base,
