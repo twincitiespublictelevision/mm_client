@@ -1,6 +1,9 @@
-mod error;
 mod endpoints;
-pub mod client;
+mod client;
+mod error;
+pub use client::Client;
+pub use error::CDCResult;
+pub use error::CDCError;
 
 #[cfg(test)]
 mod tests {

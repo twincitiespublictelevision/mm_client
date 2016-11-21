@@ -30,9 +30,9 @@ impl<'a> FranchiseEndpoint<'a> {
             .as_str())
     }
 
-    pub fn list(&self, id: &str) -> Result<Value> {
+    pub fn list(&self) -> Result<Value> {
 
-        rq_get(vec![self.base, SLUG, "/", id, "/"]
+        rq_get(vec![self.base, SLUG, "/"]
             .join("")
             .as_str())
     }
