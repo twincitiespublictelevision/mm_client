@@ -1,7 +1,3 @@
-extern crate serde_json;
-
-use self::serde_json::Value;
-
 use error::CDCResult as Result;
 
 use endpoints::request::rq_get;
@@ -23,14 +19,14 @@ impl<'a> ShowEndpoint<'a> {
         }
     }
 
-    pub fn get(&self, id: &str) -> Result<Value> {
+    pub fn get(&self, id: &str) -> Result<String> {
 
         rq_get(vec![self.base, SLUG, "/", id, "/"]
             .join("")
             .as_str())
     }
 
-    pub fn list(&self) -> Result<Value> {
+    pub fn list(&self) -> Result<String> {
 
         rq_get(vec![self.base, SLUG, "/"]
             .join("")

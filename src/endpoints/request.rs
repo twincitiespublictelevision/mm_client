@@ -1,28 +1,25 @@
-extern crate serde;
-extern crate serde_json;
 extern crate hyper;
 
 use self::hyper::client::Client;
 use self::hyper::client::RequestBuilder;
 use std::io::Read;
-use self::serde_json::Value;
 
 use error::CDCError as Error;
 use error::CDCResult as Result;
 
-pub fn rq_get(url: &str) -> Result<Value> {
+pub fn rq_get(url: &str) -> Result<String> {
     rq_make(Client::new().get(url))
 }
 
-pub fn rq_post(url: &str) -> Result<Value> {
+pub fn rq_post(url: &str) -> Result<String> {
     rq_make(Client::new().post(url))
 }
 
-pub fn rq_patch(url: &str) -> Result<Value> {
+pub fn rq_patch(url: &str) -> Result<String> {
     rq_make(Client::new().patch(url))
 }
 
-fn rq_make(request: RequestBuilder) -> Result<Value> {
+fn rq_make(request: RequestBuilder) -> Result<String> {
 
     // Request a response from the API endpoint and return with a
     // network error in the case of a failure
@@ -36,15 +33,12 @@ fn rq_make(request: RequestBuilder) -> Result<Value> {
     // io error in the case of a failure
     try!(response.read_to_end(&mut buffer).map_err(Error::Io));
 
-    // Generate a string from the buffer that will be deserialized
-    let raw = String::from_utf8(buffer).unwrap();
+    // Generate a string from the buffer
+    let result = String::from_utf8(buffer);
 
-    // Attempt to deserialize the json string
-    let result = serde_json::from_str(raw.as_str());
-
-    // Return either successfully decoded json or a Parse error
+    // Return either successfully generated string or a conversion error
     match result {
-        Ok(json) => Ok(json),
-        Err(err) => Err(Error::Parse(err)),
+        Ok(string) => Ok(string),
+        Err(err) => Err(Error::Convert(err)),
     }
 }
