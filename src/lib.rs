@@ -11,7 +11,7 @@ mod tests {
     fn it_works() {
         use client::Client;
         let client = Client::qa("", "");
-        let show1 = client.shows();
-        let show2 = client.shows();
+        let show1 = client.shows(2);
+        let show2 = client.shows(3);
     }
 }

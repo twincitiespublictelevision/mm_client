@@ -26,9 +26,9 @@ impl<'a> ShowEndpoint<'a> {
             .as_str())
     }
 
-    pub fn list(&self) -> Result<String> {
+    pub fn list(&self, page: usize) -> Result<String> {
 
-        rq_get(vec![self.base, SLUG, "/"]
+        rq_get(vec![self.base, SLUG, "/?page=", page.to_string().as_str()]
             .join("")
             .as_str())
     }
