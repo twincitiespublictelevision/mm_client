@@ -1,6 +1,6 @@
 [root]
 name = "core_data_client"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "hyper 0.9.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
