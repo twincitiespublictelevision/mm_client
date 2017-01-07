@@ -5,3 +5,8 @@ authors = ["Augustus Mayo <gusmayo@gmail.com>"]
 
 [dependencies]
 hyper = "0.9.12"
+
+[dev-dependencies]
+assert_matches = "1.0"
+mockito = "0.2.2"
+uuid = { version = "0.2", features = ["v4"] }
