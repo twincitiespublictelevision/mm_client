@@ -69,7 +69,6 @@ impl<'a> Client<'a> {
     }
 
     pub fn get(&self, endpoint: Endpoints, id: &str) -> CDCResult<String> {
-
         rq_get(vec![self.base, "/", endpoint.to_string().as_str(), "/", id, "/"]
                    .join("")
                    .as_str(),
@@ -77,10 +76,13 @@ impl<'a> Client<'a> {
     }
 
     pub fn list(&self, endpoint: Endpoints, params: Params) -> CDCResult<String> {
-
         rq_get(vec![self.base, "/", endpoint.to_string().as_str(), "/"]
                    .join("")
                    .as_str(),
                params)
+    }
+
+    pub fn url(&self, url: &str) -> CDCResult<String> {
+        rq_get(url, vec![])
     }
 }
