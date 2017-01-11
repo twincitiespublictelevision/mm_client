@@ -36,7 +36,6 @@ fn rq_make(request: RequestBuilder) -> CDCResult<String> {
 }
 
 fn handle_response(response: Response) -> CDCResult<String> {
-    println!("{:?}", response);
     match response.status {
         StatusCode::Ok => parse_success(response),
         StatusCode::BadRequest => parse_bad_request(response),

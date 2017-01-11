@@ -23,6 +23,7 @@ pub struct Client<'a> {
 
 pub type Params<'a> = Vec<(&'a str, &'a str)>;
 
+#[derive(Debug)]
 pub enum Endpoints {
     Asset,
     Changelog,
