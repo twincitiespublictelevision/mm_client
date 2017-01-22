@@ -101,7 +101,7 @@ impl<'a> Client<'a> {
     }
 
     pub fn changelog(&self, params: Params) -> CDCResult<String> {
-        self.get(Endpoints::Changelog, params)
+        self.list(Endpoints::Changelog, params)
     }
 
     pub fn collection(&self, id: &str) -> CDCResult<String> {
@@ -109,7 +109,7 @@ impl<'a> Client<'a> {
     }
 
     pub fn collections(&self, params: Params) -> CDCResult<String> {
-        self.get(Endpoints::Collection, params)
+        self.list(Endpoints::Collection, params)
     }
 
     pub fn episode(&self, id: &str) -> CDCResult<String> {
@@ -121,7 +121,7 @@ impl<'a> Client<'a> {
     }
 
     pub fn franchises(&self, params: Params) -> CDCResult<String> {
-        self.get(Endpoints::Franchise, params)
+        self.list(Endpoints::Franchise, params)
     }
 
     pub fn season(&self, id: &str) -> CDCResult<String> {
@@ -137,7 +137,7 @@ impl<'a> Client<'a> {
     }
 
     pub fn shows(&self, params: Params) -> CDCResult<String> {
-        self.get(Endpoints::Show, params)
+        self.list(Endpoints::Show, params)
     }
 }
 
