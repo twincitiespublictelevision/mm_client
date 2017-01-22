@@ -1,16 +1,15 @@
-extern crate hyper;
+extern crate reqwest;
 
-use self::hyper::client::Client;
-use self::hyper::client::RequestBuilder;
-use self::hyper::client::response::Response;
-use self::hyper::status::StatusCode;
+use self::reqwest::Client;
+use self::reqwest::Response;
+use self::reqwest::StatusCode;
 use std::io::Read;
 
 use error::CDCError;
 use error::CDCResult;
 use client::Params;
 
-pub fn rq_get(base_url: &str, params: Params) -> CDCResult<String> {
+pub fn rq_get(client: &Client, base_url: &str, params: Params) -> CDCResult<String> {
     let mut param_string = params.iter()
         .map(|&(name, value)| format!("{}={}", name, value))
         .collect::<Vec<String>>()
@@ -20,23 +19,14 @@ pub fn rq_get(base_url: &str, params: Params) -> CDCResult<String> {
         param_string = "?".to_owned() + param_string.as_str();
     }
 
-    rq_make(Client::new().get(format!("{}{}", base_url, param_string).as_str()))
-}
-
-fn rq_make(request: RequestBuilder) -> CDCResult<String> {
-
-    // Request a response from the API endpoint and return with a
-    // network error in the case of a failure
-    let network_response = request.send();
-
-    match network_response {
-        Ok(response) => handle_response(response),
-        Err(err) => Err(CDCError::Network(err)),
-    }
+    client.get(format!("{}{}", base_url, param_string).as_str())
+        .send()
+        .map_err(CDCError::Network)
+        .and_then(|response| handle_response(response))
 }
 
 fn handle_response(response: Response) -> CDCResult<String> {
-    match response.status {
+    match *response.status() {
         StatusCode::Ok => parse_success(response),
         StatusCode::BadRequest => parse_bad_request(response),
         StatusCode::Unauthorized => Err(CDCError::NotAuthorized),

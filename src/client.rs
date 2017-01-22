@@ -1,6 +1,11 @@
+extern crate reqwest;
+
 #[cfg(test)]
 use mockito;
 
+use self::reqwest::Client as NetworkClient;
+
+use error::CDCError;
 use error::CDCResult;
 use request::rq_get;
 use std::fmt;
@@ -19,6 +24,7 @@ pub struct Client<'a> {
     key: &'a str,
     secret: &'a str,
     base: &'a str,
+    client: NetworkClient,
 }
 
 pub type Params<'a> = Vec<(&'a str, &'a str)>;
@@ -53,37 +59,42 @@ impl fmt::Display for Endpoints {
 }
 
 impl<'a> Client<'a> {
-    pub fn new(key: &'a str, secret: &'a str) -> Client<'a> {
-        Client {
-            key: key,
-            secret: secret,
-            base: LIVE_URL,
-        }
+    pub fn new(key: &'a str, secret: &'a str) -> CDCResult<Client<'a>> {
+        client_builder(key, secret, LIVE_URL)
     }
 
-    pub fn qa(key: &'a str, secret: &'a str) -> Client<'a> {
-        Client {
-            key: key,
-            secret: secret,
-            base: QA_URL,
-        }
+    pub fn qa(key: &'a str, secret: &'a str) -> CDCResult<Client<'a>> {
+        client_builder(key, secret, QA_URL)
     }
 
     pub fn get(&self, endpoint: Endpoints, id: &str) -> CDCResult<String> {
-        rq_get(vec![self.base, "/", endpoint.to_string().as_str(), "/", id, "/"]
+        rq_get(&self.client,
+               vec![self.base, "/", endpoint.to_string().as_str(), "/", id, "/"]
                    .join("")
                    .as_str(),
                vec![])
     }
 
     pub fn list(&self, endpoint: Endpoints, params: Params) -> CDCResult<String> {
-        rq_get(vec![self.base, "/", endpoint.to_string().as_str(), "/"]
+        rq_get(&self.client,
+               vec![self.base, "/", endpoint.to_string().as_str(), "/"]
                    .join("")
                    .as_str(),
                params)
     }
 
     pub fn url(&self, url: &str) -> CDCResult<String> {
-        rq_get(url, vec![])
+        rq_get(&self.client, url, vec![])
     }
+}
+
+fn client_builder<'a>(key: &'a str, secret: &'a str, base: &'a str) -> CDCResult<Client<'a>> {
+    NetworkClient::new().map_err(CDCError::Network).and_then(|netClient| {
+        Ok(Client {
+            key: key,
+            secret: secret,
+            base: base,
+            client: netClient,
+        })
+    })
 }

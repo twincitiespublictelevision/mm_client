@@ -1,12 +1,15 @@
 [package]
-name = "core_data_client"
-version = "0.2.0"
 authors = ["Augustus Mayo <gusmayo@gmail.com>"]
+name = "core_data_client"
+version = "0.3.0"
 
 [dependencies]
-hyper = "0.9.12"
+reqwest = "0.3.0"
 
 [dev-dependencies]
 assert_matches = "1.0"
 mockito = "0.2.2"
-uuid = { version = "0.2", features = ["v4"] }
+
+[dev-dependencies.uuid]
+features = ["v4"]
+version = "0.2"

@@ -26,7 +26,7 @@ mod tests {
     use uuid::Uuid;
 
     fn sample_client() -> Client<'static> {
-        Client::qa("", "")
+        Client::qa("", "").unwrap()
     }
 
     fn episode_get(id: &str) -> CDCResult<String> {
