@@ -41,10 +41,7 @@ pub enum CDCError {
 impl fmt::Display for CDCError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            CDCError::NotAuthorized => {
-                write!(f,
-                       "Supplied credentials are not authorized to access this resource")
-            }
+            CDCError::NotAuthorized => write!(f, "Not authorized to access this resource"),
             CDCError::ResourceNotFound => write!(f, "Specified resource could not be found"),
             CDCError::APIFailure => write!(f, "Unknown failure of the API endpoint"),
             CDCError::BadRequest(ref err_msg) => write!(f, "API did not understand request"),
