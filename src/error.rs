@@ -41,10 +41,16 @@ pub enum CDCError {
 impl fmt::Display for CDCError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            CDCError::NotAuthorized => write!(f, "Not authorized to access this resource"),
-            CDCError::ResourceNotFound => write!(f, "Specified resource could not be found"),
-            CDCError::APIFailure => write!(f, "Unknown failure of the API endpoint"),
-            CDCError::BadRequest(ref err_msg) => write!(f, "API did not understand request"),
+            CDCError::NotAuthorized => {
+                write!(f,
+                       "Not authorized to access this resource. Ensure that valid key/secret pair \
+                        with authorization to the resource have been supplied.")
+            }
+            CDCError::ResourceNotFound => write!(f, "Specified resource could not be found."),
+            CDCError::APIFailure => write!(f, "Unknown failure of the API endpoint."),
+            CDCError::BadRequest(ref err_msg) => {
+                write!(f, "API did not understand request. {}", err_msg)
+            }
             CDCError::Convert(ref err) => err.fmt(f),
             CDCError::Network(ref err) => err.fmt(f),
             CDCError::Io(ref err) => err.fmt(f),
@@ -55,10 +61,10 @@ impl fmt::Display for CDCError {
 impl Error for CDCError {
     fn description(&self) -> &str {
         match *self {
-            CDCError::NotAuthorized => "",
-            CDCError::ResourceNotFound => "",
-            CDCError::APIFailure => "",
-            CDCError::BadRequest(ref err_msg) => "",
+            CDCError::NotAuthorized => "Not authorized response from the API",
+            CDCError::ResourceNotFound => "Specified resource could not be found",
+            CDCError::APIFailure => "Unknown failure occured",
+            CDCError::BadRequest(ref err_msg) => err_msg.as_str(),
             CDCError::Convert(ref err) => err.description(),
             CDCError::Network(ref err) => err.description(),
             CDCError::Io(ref err) => err.description(),
