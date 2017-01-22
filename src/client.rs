@@ -86,6 +86,59 @@ impl<'a> Client<'a> {
     pub fn url(&self, url: &str) -> CDCResult<String> {
         rq_get(&self.client, url, vec![])
     }
+
+    // Convenience methods for the various types
+    // Endpoints::Asset => "assets",
+    // Endpoints::Changelog => "changelog",
+    // Endpoints::Collection => "collections",
+    // Endpoints::Episode => "episodes",
+    // Endpoints::Franchise => "franchises",
+    // Endpoints::Season => "seasons",
+    // Endpoints::Show => "shows",
+    // Endpoints::Special => "specials",
+    pub fn asset(&self, id: &str) -> CDCResult<String> {
+        self.get(Endpoints::Episode, id)
+    }
+
+    pub fn changelog(&self, params: Params) -> CDCResult<String> {
+        self.get(Endpoints::Changelog, params)
+    }
+
+    pub fn collection(&self, id: &str) -> CDCResult<String> {
+        self.get(Endpoints::Collection, id)
+    }
+
+    pub fn collections(&self, params: Params) -> CDCResult<String> {
+        self.get(Endpoints::Collection, params)
+    }
+
+    pub fn episode(&self, id: &str) -> CDCResult<String> {
+        self.get(Endpoints::Episode, id)
+    }
+
+    pub fn franchise(&self, id: &str) -> CDCResult<String> {
+        self.get(Endpoints::Franchise, id)
+    }
+
+    pub fn franchises(&self, params: Params) -> CDCResult<String> {
+        self.get(Endpoints::Franchise, params)
+    }
+
+    pub fn season(&self, id: &str) -> CDCResult<String> {
+        self.get(Endpoints::Season, id)
+    }
+
+    pub fn special(&self, id: &str) -> CDCResult<String> {
+        self.get(Endpoints::Special, id)
+    }
+
+    pub fn show(&self, id: &str) -> CDCResult<String> {
+        self.get(Endpoints::Show, id)
+    }
+
+    pub fn shows(&self, params: Params) -> CDCResult<String> {
+        self.get(Endpoints::Show, params)
+    }
 }
 
 fn client_builder<'a>(key: &'a str, secret: &'a str, base: &'a str) -> CDCResult<Client<'a>> {
