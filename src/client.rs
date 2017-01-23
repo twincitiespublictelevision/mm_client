@@ -4,7 +4,7 @@ extern crate reqwest;
 use mockito;
 
 use self::reqwest::Client as NetworkClient;
-use self::reqwest::header::{Authorization, Basic};
+use self::reqwest::header::{Authorization, Basic, Connection};
 use self::reqwest::Response;
 use self::reqwest::StatusCode;
 
@@ -160,6 +160,7 @@ impl<'a> Client<'a> {
                 username: self.key.to_string(),
                 password: Some(self.secret.to_string()),
             }))
+            .header(Connection::close())
             .send()
             .map_err(CDCError::Network)
             .and_then(|response| self.handle_response(response))
