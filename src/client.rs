@@ -15,9 +15,9 @@ use error::CDCError;
 use error::CDCResult;
 
 #[cfg(not(test))]
-const LIVE_URL: &'static str = "https://media-qa.services.pbs.org/api/v1";
+const LIVE_URL: &'static str = "https://media.services.pbs.org/api/v1";
 #[cfg(not(test))]
-const QA_URL: &'static str = "https://media-qa.services.pbs.org/api/v1";
+const QA_URL: &'static str = "https://media-staging.services.pbs.org/api/v1";
 
 #[cfg(test)]
 const LIVE_URL: &'static str = mockito::SERVER_URL;
