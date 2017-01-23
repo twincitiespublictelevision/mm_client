@@ -72,12 +72,12 @@ impl<'a> Client<'a> {
     }
 
     fn client_builder(key: &'a str, secret: &'a str, base: &'a str) -> CDCResult<Client<'a>> {
-        NetworkClient::new().map_err(CDCError::Network).and_then(|netClient| {
+        NetworkClient::new().map_err(CDCError::Network).and_then(|net_client| {
             Ok(Client {
                 key: key,
                 secret: secret,
                 base: base,
-                client: netClient,
+                client: net_client,
             })
         })
     }

@@ -6,8 +6,6 @@ use std::fmt;
 use std::io;
 use std::string;
 
-use client::Endpoints;
-
 // Result type that the client can return
 pub type CDCResult<T> = Result<T, CDCError>;
 
@@ -76,7 +74,7 @@ impl Error for CDCError {
             CDCError::NotAuthorized => None,
             CDCError::ResourceNotFound => None,
             CDCError::APIFailure => None,
-            CDCError::BadRequest(ref err_msg) => None,
+            CDCError::BadRequest(_) => None,
             CDCError::Convert(ref err) => Some(err),
             CDCError::Network(ref err) => Some(err),
             CDCError::Io(ref err) => Some(err),
