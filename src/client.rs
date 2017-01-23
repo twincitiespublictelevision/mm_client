@@ -87,15 +87,6 @@ impl<'a> Client<'a> {
         rq_get(&self.client, url, vec![])
     }
 
-    // Convenience methods for the various types
-    // Endpoints::Asset => "assets",
-    // Endpoints::Changelog => "changelog",
-    // Endpoints::Collection => "collections",
-    // Endpoints::Episode => "episodes",
-    // Endpoints::Franchise => "franchises",
-    // Endpoints::Season => "seasons",
-    // Endpoints::Show => "shows",
-    // Endpoints::Special => "specials",
     pub fn asset(&self, id: &str) -> CDCResult<String> {
         self.get(Endpoints::Episode, id)
     }
