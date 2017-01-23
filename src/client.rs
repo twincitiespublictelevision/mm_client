@@ -4,11 +4,15 @@ extern crate reqwest;
 use mockito;
 
 use self::reqwest::Client as NetworkClient;
+use self::reqwest::header::{Authorization, Basic};
+use self::reqwest::Response;
+use self::reqwest::StatusCode;
+
+use std::fmt;
+use std::io::Read;
 
 use error::CDCError;
 use error::CDCResult;
-use request::rq_get;
-use std::fmt;
 
 #[cfg(not(test))]
 const LIVE_URL: &'static str = "https://media-qa.services.pbs.org/api/v1";
@@ -60,31 +64,40 @@ impl fmt::Display for Endpoints {
 
 impl<'a> Client<'a> {
     pub fn new(key: &'a str, secret: &'a str) -> CDCResult<Client<'a>> {
-        client_builder(key, secret, LIVE_URL)
+        Client::client_builder(key, secret, LIVE_URL)
     }
 
     pub fn qa(key: &'a str, secret: &'a str) -> CDCResult<Client<'a>> {
-        client_builder(key, secret, QA_URL)
+        Client::client_builder(key, secret, QA_URL)
+    }
+
+    fn client_builder(key: &'a str, secret: &'a str, base: &'a str) -> CDCResult<Client<'a>> {
+        NetworkClient::new().map_err(CDCError::Network).and_then(|netClient| {
+            Ok(Client {
+                key: key,
+                secret: secret,
+                base: base,
+                client: netClient,
+            })
+        })
     }
 
     pub fn get(&self, endpoint: Endpoints, id: &str) -> CDCResult<String> {
-        rq_get(&self.client,
-               vec![self.base, "/", endpoint.to_string().as_str(), "/", id, "/"]
-                   .join("")
-                   .as_str(),
-               vec![])
+        self.rq_get(vec![self.base, "/", endpoint.to_string().as_str(), "/", id, "/"]
+                        .join("")
+                        .as_str(),
+                    vec![])
     }
 
     pub fn list(&self, endpoint: Endpoints, params: Params) -> CDCResult<String> {
-        rq_get(&self.client,
-               vec![self.base, "/", endpoint.to_string().as_str(), "/"]
-                   .join("")
-                   .as_str(),
-               params)
+        self.rq_get(vec![self.base, "/", endpoint.to_string().as_str(), "/"]
+                        .join("")
+                        .as_str(),
+                    params)
     }
 
     pub fn url(&self, url: &str) -> CDCResult<String> {
-        rq_get(&self.client, url, vec![])
+        self.rq_get(url, vec![])
     }
 
     pub fn asset(&self, id: &str) -> CDCResult<String> {
@@ -130,15 +143,63 @@ impl<'a> Client<'a> {
     pub fn shows(&self, params: Params) -> CDCResult<String> {
         self.list(Endpoints::Show, params)
     }
-}
 
-fn client_builder<'a>(key: &'a str, secret: &'a str, base: &'a str) -> CDCResult<Client<'a>> {
-    NetworkClient::new().map_err(CDCError::Network).and_then(|netClient| {
-        Ok(Client {
-            key: key,
-            secret: secret,
-            base: base,
-            client: netClient,
-        })
-    })
+    fn rq_get(&self, base_url: &str, params: Params) -> CDCResult<String> {
+        let mut param_string = params.iter()
+            .map(|&(name, value)| format!("{}={}", name, value))
+            .collect::<Vec<String>>()
+            .join("&");
+
+        if !params.is_empty() {
+            param_string = "?".to_owned() + param_string.as_str();
+        }
+
+        self.client
+            .get(format!("{}{}", base_url, param_string).as_str())
+            .header(Authorization(Basic {
+                username: self.key.to_string(),
+                password: Some(self.secret.to_string()),
+            }))
+            .send()
+            .map_err(CDCError::Network)
+            .and_then(|response| self.handle_response(response))
+    }
+
+    fn handle_response(&self, response: Response) -> CDCResult<String> {
+        match *response.status() {
+            StatusCode::Ok => self.parse_success(response),
+            StatusCode::BadRequest => self.parse_bad_request(response),
+            StatusCode::Unauthorized => Err(CDCError::NotAuthorized),
+            StatusCode::Forbidden => Err(CDCError::NotAuthorized),
+            StatusCode::NotFound => Err(CDCError::ResourceNotFound),
+            _ => Err(CDCError::APIFailure),
+        }
+    }
+
+    fn parse_success(&self, response: Response) -> CDCResult<String> {
+        self.parse_response_body(response)
+    }
+
+    fn parse_bad_request(&self, response: Response) -> CDCResult<String> {
+        self.parse_response_body(response).and_then(|body| Err(CDCError::BadRequest(body)))
+    }
+
+    fn parse_response_body(&self, mut response: Response) -> CDCResult<String> {
+
+        // Create a buffer to read the response stream into
+        let mut buffer = Vec::new();
+
+        // Try to read the response into the buffer and return with a
+        // io error in the case of a failure
+        try!(response.read_to_end(&mut buffer).map_err(CDCError::Io));
+
+        // Generate a string from the buffer
+        let result = String::from_utf8(buffer);
+
+        // Return either successfully generated string or a conversion error
+        match result {
+            Ok(string) => Ok(string),
+            Err(err) => Err(CDCError::Convert(err)),
+        }
+    }
 }
