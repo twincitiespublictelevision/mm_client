@@ -173,7 +173,7 @@ impl<'a> Client<'a> {
             StatusCode::Unauthorized => Err(CDCError::NotAuthorized),
             StatusCode::Forbidden => Err(CDCError::NotAuthorized),
             StatusCode::NotFound => Err(CDCError::ResourceNotFound),
-            _ => Err(CDCError::APIFailure),
+            x => Err(CDCError::APIFailure(x)),
         }
     }
 

@@ -5,6 +5,8 @@ extern crate assert_matches;
 extern crate mockito;
 #[cfg(test)]
 extern crate uuid;
+#[cfg(test)]
+extern crate reqwest;
 
 mod client;
 mod error;
@@ -23,6 +25,7 @@ mod tests {
     use mockito::mock;
     use mockito::Mock;
     use uuid::Uuid;
+    use reqwest::StatusCode;
 
     const KEY: &'static str = "hello";
     const SECRET: &'static str = "world";
@@ -149,7 +152,10 @@ mod tests {
         let id = random_id();
         let mock = mock_show_endpoint(id.as_str())
             .with_status(500)
-            .create_for(|| assert_matches!(show_get(id.as_str()), Err(CDCError::APIFailure)))
+            .create_for(|| {
+                assert_matches!(show_get(id.as_str()),
+                                Err(CDCError::APIFailure(StatusCode::InternalServerError)))
+            })
             .remove();
     }
 }
