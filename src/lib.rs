@@ -12,16 +12,16 @@ mod client;
 mod error;
 pub use client::Client;
 pub use client::Endpoints;
-pub use error::CDCResult;
-pub use error::CDCError;
+pub use error::MMCResult;
+pub use error::MMCError;
 
 #[cfg(test)]
 mod tests {
     use client::Client;
     use client::Params;
     use client::Endpoints;
-    use error::CDCResult;
-    use error::CDCError;
+    use error::MMCResult;
+    use error::MMCError;
     use mockito::mock;
     use mockito::Mock;
     use uuid::Uuid;
@@ -35,11 +35,11 @@ mod tests {
         Client::qa(KEY, SECRET).unwrap()
     }
 
-    fn show_get(id: &str) -> CDCResult<String> {
+    fn show_get(id: &str) -> MMCResult<String> {
         sample_client().get(Endpoints::Show, id)
     }
 
-    fn show_list(params: Params) -> CDCResult<String> {
+    fn show_list(params: Params) -> MMCResult<String> {
         sample_client().list(Endpoints::Show, params)
     }
 
@@ -112,7 +112,7 @@ mod tests {
             .with_header("content-type", "text/plain")
             .with_body("Failure message from the server")
             .create_for(|| {
-                let bad_rq_error = CDCError::BadRequest(String::from("Failure message from the \
+                let bad_rq_error = MMCError::BadRequest(String::from("Failure message from the \
                                                                       server"));
 
                 assert_matches!(show_get(id.as_str()), Err(bad_rq_error))
@@ -125,7 +125,7 @@ mod tests {
         let id = random_id();
         let mock = mock_show_endpoint(id.as_str())
             .with_status(401)
-            .create_for(|| assert_matches!(show_get(id.as_str()), Err(CDCError::NotAuthorized)))
+            .create_for(|| assert_matches!(show_get(id.as_str()), Err(MMCError::NotAuthorized)))
             .remove();
     }
 
@@ -134,7 +134,7 @@ mod tests {
         let id = random_id();
         let mock = mock_show_endpoint(id.as_str())
             .with_status(403)
-            .create_for(|| assert_matches!(show_get(id.as_str()), Err(CDCError::NotAuthorized)))
+            .create_for(|| assert_matches!(show_get(id.as_str()), Err(MMCError::NotAuthorized)))
             .remove();
     }
 
@@ -143,7 +143,7 @@ mod tests {
         let id = random_id();
         let mock = mock_show_endpoint(id.as_str())
             .with_status(404)
-            .create_for(|| assert_matches!(show_get(id.as_str()), Err(CDCError::ResourceNotFound)))
+            .create_for(|| assert_matches!(show_get(id.as_str()), Err(MMCError::ResourceNotFound)))
             .remove();
     }
 
@@ -154,7 +154,7 @@ mod tests {
             .with_status(500)
             .create_for(|| {
                 assert_matches!(show_get(id.as_str()),
-                                Err(CDCError::APIFailure(StatusCode::InternalServerError)))
+                                Err(MMCError::APIFailure(StatusCode::InternalServerError)))
             })
             .remove();
     }
