@@ -25,10 +25,10 @@ const LIVE_URL: &'static str = mockito::SERVER_URL;
 #[cfg(test)]
 const QA_URL: &'static str = mockito::SERVER_URL;
 
-pub struct Client<'a> {
-    key: &'a str,
-    secret: &'a str,
-    base: &'a str,
+pub struct Client {
+    key: String,
+    secret: String,
+    base: String,
     client: NetworkClient,
 }
 
@@ -88,35 +88,35 @@ impl str::FromStr for Endpoints {
     }
 }
 
-impl<'a> Client<'a> {
-    pub fn new(key: &'a str, secret: &'a str) -> MMCResult<Client<'a>> {
+impl Client {
+    pub fn new(key: &str, secret: &str) -> MMCResult<Client> {
         Client::client_builder(key, secret, LIVE_URL)
     }
 
-    pub fn qa(key: &'a str, secret: &'a str) -> MMCResult<Client<'a>> {
+    pub fn qa(key: &str, secret: &str) -> MMCResult<Client> {
         Client::client_builder(key, secret, QA_URL)
     }
 
-    fn client_builder(key: &'a str, secret: &'a str, base: &'a str) -> MMCResult<Client<'a>> {
+    fn client_builder(key: &str, secret: &str, base: &str) -> MMCResult<Client> {
         NetworkClient::new().map_err(MMCError::Network).and_then(|net_client| {
             Ok(Client {
-                key: key,
-                secret: secret,
-                base: base,
+                key: String::from(key),
+                secret: String::from(secret),
+                base: String::from(base),
                 client: net_client,
             })
         })
     }
 
     pub fn get(&self, endpoint: Endpoints, id: &str) -> MMCResult<String> {
-        self.rq_get(vec![self.base, "/", endpoint.to_string().as_str(), "/", id, "/"]
+        self.rq_get(vec![self.base.as_str(), "/", endpoint.to_string().as_str(), "/", id, "/"]
                         .join("")
                         .as_str(),
                     vec![])
     }
 
     pub fn list(&self, endpoint: Endpoints, params: Params) -> MMCResult<String> {
-        self.rq_get(vec![self.base, "/", endpoint.to_string().as_str(), "/"]
+        self.rq_get(vec![self.base.as_str(), "/", endpoint.to_string().as_str(), "/"]
                         .join("")
                         .as_str(),
                     params)
