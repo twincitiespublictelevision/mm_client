@@ -86,21 +86,14 @@ impl str::FromStr for Endpoints {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "asset" => Ok(Endpoints::Asset),
-            "assets" => Ok(Endpoints::Asset),
+            "asset" | "assets" => Ok(Endpoints::Asset),
             "changelog" => Ok(Endpoints::Changelog),
-            "collection" => Ok(Endpoints::Collection),
-            "collections" => Ok(Endpoints::Collection),
-            "episode" => Ok(Endpoints::Episode),
-            "episodes" => Ok(Endpoints::Episode),
-            "franchise" => Ok(Endpoints::Franchise),
-            "franchises" => Ok(Endpoints::Franchise),
-            "season" => Ok(Endpoints::Season),
-            "seasons" => Ok(Endpoints::Season),
-            "show" => Ok(Endpoints::Show),
-            "shows" => Ok(Endpoints::Show),
-            "special" => Ok(Endpoints::Special),
-            "specials" => Ok(Endpoints::Special),
+            "collection" | "collections" => Ok(Endpoints::Collection),
+            "episode" | "episodes" => Ok(Endpoints::Episode),
+            "franchise" | "franchises" => Ok(Endpoints::Franchise),
+            "season" | "seasons" => Ok(Endpoints::Season),
+            "show" | "shows" => Ok(Endpoints::Show),
+            "special" | "specials" => Ok(Endpoints::Special),
             x => Err(MMCError::UnknownEndpoint(x.to_string())),
         }
     }
@@ -210,7 +203,7 @@ impl Client {
             .header(Connection::close())
             .send()
             .map_err(MMCError::Network)
-            .and_then(|response| Client::handle_response(response))
+            .and_then(Client::handle_response)
     }
 
     fn build_url(base_url: &str, endpoint: Endpoints, id: Option<&str>, params: Params) -> String {
@@ -253,8 +246,7 @@ impl Client {
         match *response.status() {
             StatusCode::Ok => Client::parse_success(response),
             StatusCode::BadRequest => Client::parse_bad_request(response),
-            StatusCode::Unauthorized => Err(MMCError::NotAuthorized),
-            StatusCode::Forbidden => Err(MMCError::NotAuthorized),
+            StatusCode::Unauthorized | StatusCode::Forbidden => Err(MMCError::NotAuthorized),
             StatusCode::NotFound => Err(MMCError::ResourceNotFound),
             x => Err(MMCError::APIFailure(x)),
         }

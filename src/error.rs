@@ -84,14 +84,10 @@ impl Error for MMCError {
 
     fn cause(&self) -> Option<&Error> {
         match *self {
-            MMCError::NotAuthorized => None,
-            MMCError::ResourceNotFound => None,
-            MMCError::APIFailure(_) => None,
-            MMCError::BadRequest(_) => None,
             MMCError::Convert(ref err) => Some(err),
             MMCError::Network(ref err) => Some(err),
             MMCError::Io(ref err) => Some(err),
-            MMCError::UnknownEndpoint(_) => None,
+            _ => None,
         }
     }
 }
