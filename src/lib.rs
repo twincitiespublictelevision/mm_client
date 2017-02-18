@@ -22,6 +22,8 @@
 //! Note that constructing a client may fail.
 //!
 //! ```no_run
+//! use mm_client::Client;
+//!
 //! let client = Client::new("API_KEY", "API_SECRET").unwrap();
 //! ```
 //!
@@ -30,6 +32,9 @@
 //! Requesting a single object can be performed by using the `get` method
 //!
 //! ```no_run
+//! use mm_client::Client;
+//! use mm_client::Endpoints;
+//!
 //! let client = Client::new("API_KEY", "API_SECRET").unwrap();
 //! let response = client.get(Endpoints::Asset, "asset-id");
 //! ```
@@ -40,6 +45,9 @@
 //! Requesting a list of objects can be performed by using the `list` method
 //!
 //! ```no_run
+//! use mm_client::Client;
+//! use mm_client::Endpoints;
+//!
 //! let client = Client::new("API_KEY", "API_SECRET").unwrap();
 //! let params = vec![("since", "2017-02-12T00:00:00Z")];
 //! let response = client.list(Endpoints::Show, params);
@@ -57,6 +65,10 @@ extern crate mockito;
 extern crate uuid;
 #[cfg(test)]
 extern crate reqwest;
+#[cfg(test)]
+extern crate serde;
+#[cfg(test)]
+extern crate serde_json;
 
 mod client;
 mod error;
@@ -67,15 +79,18 @@ pub use error::MMCError;
 
 #[cfg(test)]
 mod tests {
+    use mockito::mock;
+    use mockito::Mock;
+    use reqwest::StatusCode;
+    use serde::Serialize;
+    use serde_json;
+    use uuid::Uuid;
+
     use client::Client;
     use client::Params;
     use client::Endpoints;
     use error::MMCResult;
     use error::MMCError;
-    use mockito::mock;
-    use mockito::Mock;
-    use uuid::Uuid;
-    use reqwest::StatusCode;
 
     const KEY: &'static str = "hello";
     const SECRET: &'static str = "world";
@@ -93,6 +108,22 @@ mod tests {
         sample_client().list(Endpoints::Show, params)
     }
 
+    fn show_create<T: Serialize>(id: &str, body: &T) -> MMCResult<String> {
+        sample_client().create(Endpoints::Show, id, Endpoints::Asset, body)
+    }
+
+    fn show_edit(id: &str) -> MMCResult<String> {
+        sample_client().edit(Endpoints::Asset, id)
+    }
+
+    fn show_update<T: Serialize>(id: &str, body: &T) -> MMCResult<String> {
+        sample_client().update(Endpoints::Asset, id, body)
+    }
+
+    fn show_delete(id: &str) -> MMCResult<String> {
+        sample_client().delete(Endpoints::Asset, id)
+    }
+
     fn random_id() -> String {
         Uuid::new_v4().hyphenated().to_string()
     }
@@ -101,15 +132,38 @@ mod tests {
         mock("GET", vec!["/", endpoint, "/", id, "/"].join("").as_str())
     }
 
+    fn mock_create(parent: &str, p_id: &str, endpoint: &str) -> Mock {
+        mock("POST",
+             vec!["/", parent, "/", p_id, "/", endpoint, "/"].join("").as_str())
+    }
+
+    fn mock_edit(endpoint: &str, id: &str) -> Mock {
+        mock("GET",
+             vec!["/", endpoint, "/", id, "/edit/"].join("").as_str())
+    }
+
+    fn mock_update(endpoint: &str, id: &str) -> Mock {
+        println!("{:?}",
+                 vec!["/", endpoint, "/", id, "/edit/"].join("").as_str());
+
+        mock("PATCH",
+             vec!["/", endpoint, "/", id, "/edit/"].join("").as_str())
+    }
+
+    fn mock_delete(endpoint: &str, id: &str) -> Mock {
+        mock("DELETE",
+             vec!["/", endpoint, "/", id, "/edit/"].join("").as_str())
+    }
+
     fn mock_list(endpoint: &str, param_string: &str) -> Mock {
         mock("GET",
              vec!["/", endpoint, "/", param_string].join("").as_str())
     }
 
     #[test]
-    fn handles_single_200() {
+    fn single_200() {
         let id = random_id();
-        let mock = mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str())
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body("{\"name\":\"value\"}")
@@ -121,10 +175,10 @@ mod tests {
     }
 
     #[test]
-    fn handles_list_200() {
+    fn list_200() {
         let param_string = "?param1=value1&param2=value2";
 
-        let mock = mock_list("shows", param_string)
+        mock_list("shows", param_string)
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body("{\"name\":\"value\"}")
@@ -137,12 +191,12 @@ mod tests {
     }
 
     #[test]
-    fn handles_basic_auth() {
+    fn basic_auth_ok() {
         let id = random_id();
         let mut param_string = "?param=".to_string();
         param_string.push_str(id.as_str());
 
-        let mock = mock_list("shows", param_string.as_str())
+        mock_list("shows", param_string.as_str())
             .match_header("Authorization", BASIC_AUTH)
             .with_status(200)
             .with_header("content-type", "application/json")
@@ -156,11 +210,11 @@ mod tests {
     }
 
     #[test]
-    fn handles_400() {
+    fn get_400() {
         let id = random_id();
-        let mock = mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str())
             .with_status(400)
-            .with_header("content-type", "text/plain")
+            .with_header("content-type", "application/json")
             .with_body("Failure message from the server")
             .create_for(|| {
                 let bad_rq_error = MMCError::BadRequest(String::from("Failure message from the \
@@ -172,36 +226,36 @@ mod tests {
     }
 
     #[test]
-    fn handles_401() {
+    fn get_401() {
         let id = random_id();
-        let mock = mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str())
             .with_status(401)
             .create_for(|| assert_matches!(show_get(id.as_str()), Err(MMCError::NotAuthorized)))
             .remove();
     }
 
     #[test]
-    fn handles_403() {
+    fn get_403() {
         let id = random_id();
-        let mock = mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str())
             .with_status(403)
             .create_for(|| assert_matches!(show_get(id.as_str()), Err(MMCError::NotAuthorized)))
             .remove();
     }
 
     #[test]
-    fn handles_404() {
+    fn get_404() {
         let id = random_id();
-        let mock = mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str())
             .with_status(404)
             .create_for(|| assert_matches!(show_get(id.as_str()), Err(MMCError::ResourceNotFound)))
             .remove();
     }
 
     #[test]
-    fn handles_500() {
+    fn get_500() {
         let id = random_id();
-        let mock = mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str())
             .with_status(500)
             .create_for(|| {
                 assert_matches!(show_get(id.as_str()),
@@ -211,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    fn shorthand_singles_ok() {
+    fn shorthand_singles_200() {
         let id = random_id();
 
         let endpoints = vec![Endpoints::Asset,
@@ -237,7 +291,7 @@ mod tests {
     }
 
     #[test]
-    fn shorthand_list_ok() {
+    fn shorthand_list_200() {
         let id = random_id();
 
         let param_string = vec!["?param1=", id.as_str(), "&param2=value2"].join("");
@@ -260,5 +314,91 @@ mod tests {
                 })
                 .remove();
         }
+    }
+
+    #[test]
+    fn create_201() {
+        let p_id = random_id();
+
+        let body = "{\"name\":\"value\"}";
+
+        mock_create("shows", p_id.as_str(), "assets")
+            .with_status(201)
+            .with_header("content-type", "application/json")
+            .with_body("{\"name\":\"value\"}")
+            .create_for(|| {
+                let test_response = String::from("{\"name\":\"value\"}");
+                let body: serde_json::Value = serde_json::from_str(test_response.as_str()).unwrap();
+                assert_matches!(show_create(p_id.as_str(), &body), Ok(test_response))
+            })
+            .remove();
+    }
+
+    #[test]
+    fn create_400() {
+        let p_id = random_id();
+        let body = "{\"name\":\"value\"}";
+        let server_error = "Payload missing parameter";
+
+        mock_create("shows", p_id.as_str(), "assets")
+            .with_status(400)
+            .with_header("content-type", "application/json")
+            .with_body(server_error)
+            .create_for(|| {
+                let test_response = String::from("{\"name\":\"value\"}");
+                let body: serde_json::Value = serde_json::from_str(test_response.as_str()).unwrap();
+                let bad_rq_error = MMCError::BadRequest(String::from(server_error));
+                assert_matches!(show_create(p_id.as_str(), &body), Err(bad_rq_error))
+            })
+            .remove();
+    }
+
+    #[test]
+    fn edit_200() {
+        let id = random_id();
+        let body_str = "{\"name\":\"value\"}";
+
+        mock_edit("assets", id.as_str())
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body_str)
+            .create_for(|| {
+                let test_response = String::from(body_str);
+                assert_matches!(show_edit(id.as_str()), Ok(test_response))
+            })
+            .remove();
+    }
+
+    #[test]
+    fn update_200() {
+        let id = random_id();
+        let body = "{\"name\":\"value\"}";
+
+        mock_update("assets", id.as_str())
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body("{\"name\":\"value\"}")
+            .create_for(|| {
+                let test_response = String::from("{\"name\":\"value\"}");
+                let body: serde_json::Value = serde_json::from_str(test_response.as_str()).unwrap();
+                assert_matches!(show_update(id.as_str(), &body), Ok(test_response))
+            })
+            .remove();
+    }
+
+    #[test]
+    fn delete_200() {
+        let id = random_id();
+        let body_str = "{\"name\":\"value\"}";
+
+        mock_delete("assets", id.as_str())
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(body_str)
+            .create_for(|| {
+                let test_response = String::from(body_str);
+                assert_matches!(show_delete(id.as_str()), Ok(test_response))
+            })
+            .remove();
     }
 }

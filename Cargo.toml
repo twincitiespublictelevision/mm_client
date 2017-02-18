@@ -4,7 +4,9 @@ name = "mm_client"
 version = "0.7.0"
 
 [dependencies]
-reqwest = "0.3.0"
+reqwest = "0.4.0"
+serde = "0.9.7"
+serde_json = "0.9.6"
 
 [dev-dependencies]
 assert_matches = "1.0"

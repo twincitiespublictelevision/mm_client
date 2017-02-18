@@ -1,12 +1,13 @@
 extern crate reqwest;
+extern crate serde;
 
 #[cfg(test)]
 use mockito;
 
 use self::reqwest::Client as NetworkClient;
 use self::reqwest::header::{Authorization, Basic, Connection};
-use self::reqwest::Response;
-use self::reqwest::StatusCode;
+use self::reqwest::{Method, RequestBuilder, Response, StatusCode};
+use self::serde::Serialize;
 
 use std::fmt;
 use std::io::Read;
@@ -22,7 +23,7 @@ const STAGING_URL: &'static str = "https://media-staging.services.pbs.org/api/v1
 
 #[cfg(test)]
 const LIVE_URL: &'static str = mockito::SERVER_URL;
-#[cfg(tet)]
+#[cfg(test)]
 const STAGING_URL: &'static str = mockito::SERVER_URL;
 
 /// A client for communicating with the Media Manager API
@@ -63,6 +64,8 @@ pub enum Endpoints {
     /// Represents the specials endpoint
     Special,
 }
+
+type ParentEndpoint<'a> = (Endpoints, &'a str);
 
 impl fmt::Display for Endpoints {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -124,13 +127,54 @@ impl Client {
     /// Attempts to fetch a single object with the requested id from the requested
     /// Media Manager API endpoint
     pub fn get(&self, endpoint: Endpoints, id: &str) -> MMCResult<String> {
-        self.rq_get(Client::build_url(self.base.as_str(), endpoint, Some(id), vec![]).as_str())
+        self.rq_get(Client::build_url(self.base.as_str(), None, endpoint, Some(id), vec![])
+            .as_str())
     }
 
     /// Attempts to fetch a list of objects from the requested Media Manager API endpoint augmented
     /// by the requested parameters
     pub fn list(&self, endpoint: Endpoints, params: Params) -> MMCResult<String> {
-        self.rq_get(Client::build_url(self.base.as_str(), endpoint, None, params).as_str())
+        self.rq_get(Client::build_url(self.base.as_str(), None, endpoint, None, params).as_str())
+    }
+
+    /// Attempts to create a new object of the provided [Endpoints](enum.Endpoints.html) for the
+    /// provided parent [Endpoints](enum.Endpoints.html)
+    pub fn create<T: Serialize>(&self,
+                                parent: Endpoints,
+                                id: &str,
+                                endpoint: Endpoints,
+                                body: &T)
+                                -> MMCResult<String> {
+        self.rq_post(Client::build_url(self.base.as_str(),
+                                       Some((parent, id)),
+                                       endpoint,
+                                       None,
+                                       vec![])
+                         .as_str(),
+                     body)
+    }
+
+    /// Attempts to fetch the edit object specified by the  [Endpoints](enum.Endpoints.html) and id
+    pub fn edit(&self, endpoint: Endpoints, id: &str) -> MMCResult<String> {
+        self.rq_get(Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![])
+            .as_str())
+    }
+
+    /// Attempts to update the object specified by the  [Endpoints](enum.Endpoints.html) and id
+    pub fn update<T: Serialize>(&self,
+                                endpoint: Endpoints,
+                                id: &str,
+                                body: &T)
+                                -> MMCResult<String> {
+        self.rq_patch(Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![])
+                          .as_str(),
+                      body)
+    }
+
+    /// Attempts to delete the object specified by the  [Endpoints](enum.Endpoints.html) and id
+    pub fn delete(&self, endpoint: Endpoints, id: &str) -> MMCResult<String> {
+        self.rq_delete(Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![])
+            .as_str())
     }
 
     /// Allows for calling any arbitrary url from the Media Manager API
@@ -193,10 +237,29 @@ impl Client {
         self.list(Endpoints::Show, params)
     }
 
+    // Handle read endpoints of the API
     fn rq_get(&self, url: &str) -> MMCResult<String> {
-        self.client
-            .get(url)
-            .header(Authorization(Basic {
+        self.rq_send(self.client.get(url))
+    }
+
+    // Handle create endpoints of the API
+    fn rq_post<T: Serialize>(&self, url: &str, body: &T) -> MMCResult<String> {
+        self.rq_send(self.client.post(url).json(body))
+    }
+
+    // Handle update endpoints of the API
+    fn rq_patch<T: Serialize>(&self, url: &str, body: &T) -> MMCResult<String> {
+        self.rq_send(self.client.request(Method::Patch, url).json(body))
+    }
+
+    // Handle update endpoints of the API
+    fn rq_delete(&self, url: &str) -> MMCResult<String> {
+        self.rq_send(self.client.request(Method::Delete, url))
+    }
+
+    // Handle authentication and response mapping
+    fn rq_send(&self, req: RequestBuilder) -> MMCResult<String> {
+        req.header(Authorization(Basic {
                 username: self.key.to_string(),
                 password: Some(self.secret.to_string()),
             }))
@@ -206,11 +269,36 @@ impl Client {
             .and_then(Client::handle_response)
     }
 
-    fn build_url(base_url: &str, endpoint: Endpoints, id: Option<&str>, params: Params) -> String {
+    fn build_edit_url(base_url: &str,
+                      parent: Option<ParentEndpoint>,
+                      endpoint: Endpoints,
+                      id: Option<&str>,
+                      params: Params)
+                      -> String {
+        let mut url = Client::build_url(base_url, parent, endpoint, id, params);
+        url.push_str("edit/");
+
+        url
+    }
+
+    fn build_url(base_url: &str,
+                 parent: Option<ParentEndpoint>,
+                 endpoint: Endpoints,
+                 id: Option<&str>,
+                 params: Params)
+                 -> String {
 
         // Create the new base for the returned url
         let mut url = base_url.to_string();
         url.push('/');
+
+        // Add the parent endpoint if an endpoint and id was supplied
+        if let Some(p_endpoint) = parent {
+            url.push_str(p_endpoint.0.to_string().as_str());
+            url.push('/');
+            url.push_str(p_endpoint.1);
+            url.push('/');
+        }
 
         // Parse the requested endpoint
         let endpoint_string = endpoint.to_string();
@@ -245,6 +333,7 @@ impl Client {
     fn handle_response(response: Response) -> MMCResult<String> {
         match *response.status() {
             StatusCode::Ok => Client::parse_success(response),
+            StatusCode::Created => Client::parse_success(response),
             StatusCode::BadRequest => Client::parse_bad_request(response),
             StatusCode::Unauthorized | StatusCode::Forbidden => Err(MMCError::NotAuthorized),
             StatusCode::NotFound => Err(MMCError::ResourceNotFound),
