@@ -332,8 +332,7 @@ impl Client {
 
     fn handle_response(response: Response) -> MMCResult<String> {
         match *response.status() {
-            StatusCode::Ok => Client::parse_success(response),
-            StatusCode::Created => Client::parse_success(response),
+            StatusCode::Ok | StatusCode::NoContent => Client::parse_success(response),
             StatusCode::BadRequest => Client::parse_bad_request(response),
             StatusCode::Unauthorized | StatusCode::Forbidden => Err(MMCError::NotAuthorized),
             StatusCode::NotFound => Err(MMCError::ResourceNotFound),
