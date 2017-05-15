@@ -26,11 +26,11 @@ version = "2.20"
 
 [dependencies.serde_derive]
 optional = true
-version = "0.9"
+version = "1.0"
 
 [dependencies.toml]
 optional = true
-version = "0.3"
+version = "0.4"
 
 [dev-dependencies]
 assert_matches = "1.0"
