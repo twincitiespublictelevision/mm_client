@@ -1,0 +1,14 @@
+# MediaManagerCLI Config
+#
+# This sample configuration file is used to define the key/secret pairs for accessing the production and/or qa environments of the PBS Media Manager API.
+#
+# To create a config file copy or rename this file to config.toml and replace
+# the placeholder values below with your key/secret pairs
+
+[live]
+key="REPLACE_WITH_PRODUCTION_KEY"
+secret="REPLACE_WITH_PRODUCTION_SECRET"
+
+[staging]
+key="REPLACE_WITH_QA_KEY"
+secret="REPLACE_WITH_QA_SECRET"

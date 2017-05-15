@@ -5,10 +5,11 @@
 //! API or the staging API.
 //!
 //! The main goals of the crate are to:
-//! * Provide authentication handling
-//! * Manage API url construction
-//! * Handle API error responses
-//! * Make few assumptions about how responses will be used
+//!
+//!  * Provide authentication handling
+//!  * Manage API url construction
+//!  * Handle API error responses
+//!  * Make few assumptions about how responses will be used
 //!
 //! Currently all requests made by a [Client](struct.Client.html) are synchronous.
 //!
@@ -317,13 +318,13 @@ mod tests {
     }
 
     #[test]
-    fn create_201() {
+    fn create_204() {
         let p_id = random_id();
 
         let body = "{\"name\":\"value\"}";
 
         mock_create("shows", p_id.as_str(), "assets")
-            .with_status(201)
+            .with_status(204)
             .with_header("content-type", "application/json")
             .with_body("{\"name\":\"value\"}")
             .create_for(|| {

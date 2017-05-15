@@ -1,12 +1,36 @@
 [package]
-authors = ["Augustus Mayo <gusmayo@gmail.com>"]
+authors = ["TPT <webmaster@tpt.org>"]
 name = "mm_client"
 version = "0.8.1"
+license = "Apache-2.0"
+
+[[bin]]
+doc = true
+name = "mm_cli"
+path = "src/cli/main.rs"
+required-features = ["cli"]
+test = true
 
 [dependencies]
-reqwest = "0.4.0"
-serde = "0.9.7"
-serde_json = "0.9.6"
+reqwest = "0.4"
+serde = "0.9"
+serde_json = "0.9"
+
+[dependencies.app_dirs]
+optional = true
+version = "1.1.1"
+
+[dependencies.clap]
+optional = true
+version = "2.20"
+
+[dependencies.serde_derive]
+optional = true
+version = "0.9"
+
+[dependencies.toml]
+optional = true
+version = "0.3"
 
 [dev-dependencies]
 assert_matches = "1.0"
@@ -15,3 +39,6 @@ mockito = "0.2.2"
 [dev-dependencies.uuid]
 features = ["v4"]
 version = "0.2"
+
+[features]
+cli = ["app_dirs", "clap", "serde_derive", "toml"]
