@@ -14,4 +14,4 @@ mm_client = "0.9.0"
 
 ### Optional features
 
-* *"cli"* - Builds a sample cli binary that uses the client
+* **"cli"** - Builds a sample cli binary that uses the client
