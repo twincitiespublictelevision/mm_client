@@ -1,4 +1,7 @@
 # mm_client
+[![Latest Version](https://img.shields.io/crates/v/mm_client.svg)](https://crates.io/crates/mm_client)
+[![Documentation](https://docs.rs/mm_client/badge.svg)](https://docs.rs/mm_client)
+
 
 The `mm_client` crate is a very small library for communicating with the PBS Media Manager API
 easier. It provides a client for querying against either the production
