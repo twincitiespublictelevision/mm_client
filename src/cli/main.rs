@@ -39,7 +39,7 @@ use config::Config;
 
 fn main() {
 
-    let matches = App::new("MediaManager CLI")
+    let matches = App::new(env!("CARGO_PKG_NAME"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .arg(Arg::with_name("init")
