@@ -4,7 +4,7 @@ machine:
 
 dependencies:
   pre:
-    - curl https://sh.rustup.rs -sSf | sh
+    - curl -L https://sh.rustup.rs | sh -s -- -y
 
 test:
   override:
