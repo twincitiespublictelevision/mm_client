@@ -6,10 +6,7 @@ machine:
   environment:
     PATH: ${HOME}/.cargo/bin:${PATH}
 
-compile:
-  override:
-    - cargo build --release
-
 test:
   override:
-    - cargo test
+    - case $CIRCLE_NODE_INDEX in 0) cargo build --release ;; 1) cargo test ;; esac:
+        parallel: true
