@@ -8,7 +8,7 @@ machine:
 
 compile:
   override:
-    - cd shell && cargo build --release
+    - cargo build --release
 
 test:
   override:
