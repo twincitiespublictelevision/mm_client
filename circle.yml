@@ -1,12 +1,15 @@
 machine:
   pre:
     - sed -i 's/github/git-non-exist-hub/g' ~/.gitconfig
-
-dependencies:
-  pre:
     - curl -L https://sh.rustup.rs | sh -s -- -y
+
+  environment:
+    PATH: ${HOME}/.cargo/bin:${PATH}
+
+compile:
+  override:
+    - cd shell && cargo build --release
 
 test:
   override:
-    - cargo build --release
     - cargo test
