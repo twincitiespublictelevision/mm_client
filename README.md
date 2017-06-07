@@ -18,3 +18,9 @@ mm_client = "0.9.0"
 ### Optional features
 
 * **"cli"** - Builds a sample cli binary that uses the client
+
+---
+
+### Licensing
+
+mm_api_notify is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for the full license text.
