@@ -114,67 +114,80 @@ impl Client {
     }
 
     fn client_builder(key: &str, secret: &str, base: &str) -> MMCResult<Client> {
-        NetworkClient::new().map_err(MMCError::Network).and_then(|net_client| {
-            Ok(Client {
-                key: String::from(key),
-                secret: String::from(secret),
-                base: String::from(base),
-                client: net_client,
-            })
-        })
+        NetworkClient::new().map_err(MMCError::Network).and_then(
+            |net_client| {
+                Ok(Client {
+                    key: String::from(key),
+                    secret: String::from(secret),
+                    base: String::from(base),
+                    client: net_client,
+                })
+            },
+        )
     }
 
     /// Attempts to fetch a single object with the requested id from the requested
     /// Media Manager API endpoint
     pub fn get(&self, endpoint: Endpoints, id: &str) -> MMCResult<String> {
-        self.rq_get(Client::build_url(self.base.as_str(), None, endpoint, Some(id), vec![])
-            .as_str())
+        self.rq_get(
+            Client::build_url(self.base.as_str(), None, endpoint, Some(id), vec![]).as_str(),
+        )
     }
 
     /// Attempts to fetch a list of objects from the requested Media Manager API endpoint augmented
     /// by the requested parameters
     pub fn list(&self, endpoint: Endpoints, params: Params) -> MMCResult<String> {
-        self.rq_get(Client::build_url(self.base.as_str(), None, endpoint, None, params).as_str())
+        self.rq_get(
+            Client::build_url(self.base.as_str(), None, endpoint, None, params).as_str(),
+        )
     }
 
     /// Attempts to create a new object of the provided [Endpoints](enum.Endpoints.html) for the
     /// provided parent [Endpoints](enum.Endpoints.html)
-    pub fn create<T: Serialize>(&self,
-                                parent: Endpoints,
-                                id: &str,
-                                endpoint: Endpoints,
-                                body: &T)
-                                -> MMCResult<String> {
-        self.rq_post(Client::build_url(self.base.as_str(),
-                                       Some((parent, id)),
-                                       endpoint,
-                                       None,
-                                       vec![])
-                         .as_str(),
-                     body)
+    pub fn create<T: Serialize>(
+        &self,
+        parent: Endpoints,
+        id: &str,
+        endpoint: Endpoints,
+        body: &T,
+    ) -> MMCResult<String> {
+        self.rq_post(
+            Client::build_url(
+                self.base.as_str(),
+                Some((parent, id)),
+                endpoint,
+                None,
+                vec![],
+            ).as_str(),
+            body,
+        )
     }
 
     /// Attempts to fetch the edit object specified by the  [Endpoints](enum.Endpoints.html) and id
     pub fn edit(&self, endpoint: Endpoints, id: &str) -> MMCResult<String> {
-        self.rq_get(Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![])
-            .as_str())
+        self.rq_get(
+            Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![]).as_str(),
+        )
     }
 
     /// Attempts to update the object specified by the  [Endpoints](enum.Endpoints.html) and id
-    pub fn update<T: Serialize>(&self,
-                                endpoint: Endpoints,
-                                id: &str,
-                                body: &T)
-                                -> MMCResult<String> {
-        self.rq_patch(Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![])
-                          .as_str(),
-                      body)
+    pub fn update<T: Serialize>(
+        &self,
+        endpoint: Endpoints,
+        id: &str,
+        body: &T,
+    ) -> MMCResult<String> {
+        self.rq_patch(
+            Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![]).as_str(),
+            body,
+        )
     }
 
     /// Attempts to delete the object specified by the  [Endpoints](enum.Endpoints.html) and id
     pub fn delete(&self, endpoint: Endpoints, id: &str) -> MMCResult<String> {
-        self.rq_delete(Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![])
-            .as_str())
+        self.rq_delete(
+            Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![]).as_str(),
+        )
     }
 
     /// Allows for calling any arbitrary url from the Media Manager API
@@ -260,33 +273,34 @@ impl Client {
     // Handle authentication and response mapping
     fn rq_send(&self, req: RequestBuilder) -> MMCResult<String> {
         req.header(Authorization(Basic {
-                username: self.key.to_string(),
-                password: Some(self.secret.to_string()),
-            }))
-            .header(Connection::close())
+            username: self.key.to_string(),
+            password: Some(self.secret.to_string()),
+        })).header(Connection::close())
             .send()
             .map_err(MMCError::Network)
             .and_then(Client::handle_response)
     }
 
-    fn build_edit_url(base_url: &str,
-                      parent: Option<ParentEndpoint>,
-                      endpoint: Endpoints,
-                      id: Option<&str>,
-                      params: Params)
-                      -> String {
+    fn build_edit_url(
+        base_url: &str,
+        parent: Option<ParentEndpoint>,
+        endpoint: Endpoints,
+        id: Option<&str>,
+        params: Params,
+    ) -> String {
         let mut url = Client::build_url(base_url, parent, endpoint, id, params);
         url.push_str("edit/");
 
         url
     }
 
-    fn build_url(base_url: &str,
-                 parent: Option<ParentEndpoint>,
-                 endpoint: Endpoints,
-                 id: Option<&str>,
-                 params: Params)
-                 -> String {
+    fn build_url(
+        base_url: &str,
+        parent: Option<ParentEndpoint>,
+        endpoint: Endpoints,
+        id: Option<&str>,
+        params: Params,
+    ) -> String {
 
         // Create the new base for the returned url
         let mut url = base_url.to_string();
@@ -317,7 +331,8 @@ impl Client {
 
     fn format_params(params: Params) -> String {
         if !params.is_empty() {
-            let param_string = params.iter()
+            let param_string = params
+                .iter()
                 .map(|&(name, value)| format!("{}={}", name, value))
                 .collect::<Vec<String>>()
                 .join("&");

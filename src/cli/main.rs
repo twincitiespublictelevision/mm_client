@@ -42,23 +42,31 @@ fn main() {
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
-        .arg(Arg::with_name("init")
-            .long("init")
-            .takes_value(false)
-            .help("Creates/replaces a config.toml file"))
-        .arg(Arg::with_name("type")
-            .takes_value(true)
-            .required(false)
-            .help("Object type to query for"))
-        .arg(Arg::with_name("id")
-            .takes_value(true)
-            .required(false)
-            .help("Object id to query for"))
-        .arg(Arg::with_name("staging")
-            .short("s")
-            .long("staging")
-            .takes_value(false)
-            .help("Runs query against the staging environment"))
+        .arg(
+            Arg::with_name("init")
+                .long("init")
+                .takes_value(false)
+                .help("Creates/replaces a config.toml file"),
+        )
+        .arg(
+            Arg::with_name("type")
+                .takes_value(true)
+                .required(false)
+                .help("Object type to query for"),
+        )
+        .arg(
+            Arg::with_name("id")
+                .takes_value(true)
+                .required(false)
+                .help("Object id to query for"),
+        )
+        .arg(
+            Arg::with_name("staging")
+                .short("s")
+                .long("staging")
+                .takes_value(false)
+                .help("Runs query against the staging environment"),
+        )
         .get_matches();
 
     let info = AppInfo {
@@ -71,9 +79,13 @@ fn main() {
             path.push("config.toml");
             Ok(path)
         })
-        .expect("Failed to run. Unable to determine default config location.");
+        .expect(
+            "Failed to run. Unable to determine default config location.",
+        );
 
-    let path = config_path.to_str().expect("Failed to parse config location.");
+    let path = config_path.to_str().expect(
+        "Failed to parse config location.",
+    );
 
     if matches.is_present("init") {
         Config::create(path);
@@ -85,7 +97,9 @@ fn main() {
             Config::parse_config(path).and_then(|config| {
                 let result = Endpoints::from_str(endpoint)
                     .or(Err(CLIError::Endpoint))
-                    .and_then(|ep| rq_endpoint(&config, matches.is_present("staging"), ep, id));
+                    .and_then(|ep| {
+                        rq_endpoint(&config, matches.is_present("staging"), ep, id)
+                    });
 
                 // Handle the result from the client, outputting it to the user
                 match result {
@@ -100,11 +114,12 @@ fn main() {
     }
 }
 
-fn rq_endpoint(config: &Config,
-               is_staging: bool,
-               endpoint: Endpoints,
-               id: &str)
-               -> Result<String, CLIError> {
+fn rq_endpoint(
+    config: &Config,
+    is_staging: bool,
+    endpoint: Endpoints,
+    id: &str,
+) -> Result<String, CLIError> {
     let conf = if is_staging {
         &config.staging
     } else {
@@ -122,8 +137,9 @@ fn rq_endpoint(config: &Config,
                 Client::new(key_sec.key.as_str(), key_sec.secret.as_str())
             };
 
-            client.map_err(CLIError::Network)
-                .and_then(|cl| handle_client_response(cl.get(endpoint, id)))
+            client.map_err(CLIError::Network).and_then(|cl| {
+                handle_client_response(cl.get(endpoint, id))
+            })
         }
         None => Err(CLIError::EndpointConfigMissing),
     }

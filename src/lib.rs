@@ -134,31 +134,45 @@ mod tests {
     }
 
     fn mock_create(parent: &str, p_id: &str, endpoint: &str) -> Mock {
-        mock("POST",
-             vec!["/", parent, "/", p_id, "/", endpoint, "/"].join("").as_str())
+        mock(
+            "POST",
+            vec!["/", parent, "/", p_id, "/", endpoint, "/"]
+                .join("")
+                .as_str(),
+        )
     }
 
     fn mock_edit(endpoint: &str, id: &str) -> Mock {
-        mock("GET",
-             vec!["/", endpoint, "/", id, "/edit/"].join("").as_str())
+        mock(
+            "GET",
+            vec!["/", endpoint, "/", id, "/edit/"].join("").as_str(),
+        )
     }
 
     fn mock_update(endpoint: &str, id: &str) -> Mock {
-        println!("{:?}",
-                 vec!["/", endpoint, "/", id, "/edit/"].join("").as_str());
+        println!(
+            "{:?}",
+            vec!["/", endpoint, "/", id, "/edit/"].join("").as_str()
+        );
 
-        mock("PATCH",
-             vec!["/", endpoint, "/", id, "/edit/"].join("").as_str())
+        mock(
+            "PATCH",
+            vec!["/", endpoint, "/", id, "/edit/"].join("").as_str(),
+        )
     }
 
     fn mock_delete(endpoint: &str, id: &str) -> Mock {
-        mock("DELETE",
-             vec!["/", endpoint, "/", id, "/edit/"].join("").as_str())
+        mock(
+            "DELETE",
+            vec!["/", endpoint, "/", id, "/edit/"].join("").as_str(),
+        )
     }
 
     fn mock_list(endpoint: &str, param_string: &str) -> Mock {
-        mock("GET",
-             vec!["/", endpoint, "/", param_string].join("").as_str())
+        mock(
+            "GET",
+            vec!["/", endpoint, "/", param_string].join("").as_str(),
+        )
     }
 
     #[test]
@@ -218,8 +232,10 @@ mod tests {
             .with_header("content-type", "application/json")
             .with_body("Failure message from the server")
             .create_for(|| {
-                let bad_rq_error = MMCError::BadRequest(String::from("Failure message from the \
-                                                                      server"));
+                let bad_rq_error = MMCError::BadRequest(String::from(
+                    "Failure message from the \
+                                                                      server",
+                ));
 
                 assert_matches!(show_get(id.as_str()), Err(bad_rq_error))
             })
@@ -231,7 +247,9 @@ mod tests {
         let id = random_id();
         mock_single("shows", id.as_str())
             .with_status(401)
-            .create_for(|| assert_matches!(show_get(id.as_str()), Err(MMCError::NotAuthorized)))
+            .create_for(|| {
+                assert_matches!(show_get(id.as_str()), Err(MMCError::NotAuthorized))
+            })
             .remove();
     }
 
@@ -240,7 +258,9 @@ mod tests {
         let id = random_id();
         mock_single("shows", id.as_str())
             .with_status(403)
-            .create_for(|| assert_matches!(show_get(id.as_str()), Err(MMCError::NotAuthorized)))
+            .create_for(|| {
+                assert_matches!(show_get(id.as_str()), Err(MMCError::NotAuthorized))
+            })
             .remove();
     }
 
@@ -249,7 +269,9 @@ mod tests {
         let id = random_id();
         mock_single("shows", id.as_str())
             .with_status(404)
-            .create_for(|| assert_matches!(show_get(id.as_str()), Err(MMCError::ResourceNotFound)))
+            .create_for(|| {
+                assert_matches!(show_get(id.as_str()), Err(MMCError::ResourceNotFound))
+            })
             .remove();
     }
 
@@ -259,8 +281,10 @@ mod tests {
         mock_single("shows", id.as_str())
             .with_status(500)
             .create_for(|| {
-                assert_matches!(show_get(id.as_str()),
-                                Err(MMCError::APIFailure(StatusCode::InternalServerError)))
+                assert_matches!(
+                    show_get(id.as_str()),
+                    Err(MMCError::APIFailure(StatusCode::InternalServerError))
+                )
             })
             .remove();
     }
@@ -269,13 +293,15 @@ mod tests {
     fn shorthand_singles_200() {
         let id = random_id();
 
-        let endpoints = vec![Endpoints::Asset,
-                             Endpoints::Collection,
-                             Endpoints::Episode,
-                             Endpoints::Franchise,
-                             Endpoints::Season,
-                             Endpoints::Special,
-                             Endpoints::Show];
+        let endpoints = vec![
+            Endpoints::Asset,
+            Endpoints::Collection,
+            Endpoints::Episode,
+            Endpoints::Franchise,
+            Endpoints::Season,
+            Endpoints::Special,
+            Endpoints::Show,
+        ];
 
         for endpoint in endpoints.into_iter() {
             mock_single(endpoint.to_string().as_str(), id.as_str())
@@ -284,8 +310,10 @@ mod tests {
                 .with_body("{\"name\":\"value\"}")
                 .create_for(|| {
                     let test_response = String::from("{\"name\":\"value\"}");
-                    assert_matches!(sample_client().get(endpoint.clone(), id.as_str()),
-                                    Ok(test_response))
+                    assert_matches!(
+                        sample_client().get(endpoint.clone(), id.as_str()),
+                        Ok(test_response)
+                    )
                 })
                 .remove();
         }
@@ -298,10 +326,12 @@ mod tests {
         let param_string = vec!["?param1=", id.as_str(), "&param2=value2"].join("");
         let params = vec![("param1", id.as_str()), ("param2", "value2")];
 
-        let endpoints = vec![Endpoints::Changelog,
-                             Endpoints::Collection,
-                             Endpoints::Franchise,
-                             Endpoints::Show];
+        let endpoints = vec![
+            Endpoints::Changelog,
+            Endpoints::Collection,
+            Endpoints::Franchise,
+            Endpoints::Show,
+        ];
 
         for endpoint in endpoints.into_iter() {
             mock_list(endpoint.to_string().as_str(), param_string.as_str())
@@ -310,8 +340,10 @@ mod tests {
                 .with_body("{\"name\":\"value\"}")
                 .create_for(|| {
                     let test_response = String::from("{\"name\":\"value\"}");
-                    assert_matches!(sample_client().list(endpoint.clone(), params.clone()),
-                                    Ok(test_response))
+                    assert_matches!(
+                        sample_client().list(endpoint.clone(), params.clone()),
+                        Ok(test_response)
+                    )
                 })
                 .remove();
         }

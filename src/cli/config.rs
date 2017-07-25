@@ -24,8 +24,11 @@ impl Config {
         File::open(path)
             .map_err(CLIError::ConfigStorageFailure)
             .and_then(|mut file| {
-                file.read_to_string(&mut config_toml)
-                    .unwrap_or_else(|err| panic!("Error while reading config: [{}]", err));
+                file.read_to_string(&mut config_toml).unwrap_or_else(
+                    |err| {
+                        panic!("Error while reading config: [{}]", err)
+                    },
+                );
 
                 toml::from_str(&config_toml).or(Err(CLIError::InvalidConfig))
             })
@@ -52,7 +55,9 @@ impl Config {
 
     fn store(&self, path: &str) -> Result<(), CLIError> {
         let mut file = File::create(path)?;
-        file.write_all(&toml::to_string(&self).expect("Failed to parse config").into_bytes())
+        file.write_all(&toml::to_string(&self)
+            .expect("Failed to parse config")
+            .into_bytes())
             .map_err(CLIError::ConfigStorageFailure)
     }
 
@@ -60,7 +65,8 @@ impl Config {
         print!("{}", prompt);
         io::stdout().flush();
         let stdin = io::stdin();
-        let input = stdin.lock()
+        let input = stdin
+            .lock()
             .lines()
             .next()
             .expect("Input could not be found")

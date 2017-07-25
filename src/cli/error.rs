@@ -21,17 +21,23 @@ impl fmt::Display for CLIError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             CLIError::InvalidConfig => {
-                write!(f,
-                       "Supplied config.toml could not be understood. Try checking for a \
-                        misspelled or missing property.")
+                write!(
+                    f,
+                    "Supplied config.toml could not be understood. Try checking for a \
+                        misspelled or missing property."
+                )
             }
             CLIError::EndpointConfigMissing => {
-                write!(f,
-                       "config.toml is missing the key/secret pair for this endpoint.")
+                write!(
+                    f,
+                    "config.toml is missing the key/secret pair for this endpoint."
+                )
             }
             CLIError::Endpoint => {
-                write!(f,
-                       "Requested endpoint is not in the list of known endpoints.")
+                write!(
+                    f,
+                    "Requested endpoint is not in the list of known endpoints."
+                )
             }
             CLIError::ConfigStorageFailure(ref err) => err.fmt(f),
             CLIError::Format(_) => write!(f, "Failure to format response."),

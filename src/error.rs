@@ -43,15 +43,19 @@ impl fmt::Display for MMCError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             MMCError::NotAuthorized => {
-                write!(f,
-                       "Not authorized to access this resource. Ensure that valid key/secret pair \
-                        with authorization to the resource have been supplied.")
+                write!(
+                    f,
+                    "Not authorized to access this resource. Ensure that valid key/secret pair \
+                        with authorization to the resource have been supplied."
+                )
             }
             MMCError::ResourceNotFound => write!(f, "Specified resource could not be found."),
             MMCError::APIFailure(ref status_code) => {
-                write!(f,
-                       "Unknown failure of the API endpoint. API returned a {} status.",
-                       status_code)
+                write!(
+                    f,
+                    "Unknown failure of the API endpoint. API returned a {} status.",
+                    status_code
+                )
             }
             MMCError::BadRequest(ref err_msg) => {
                 write!(f, "API did not understand request. {}", err_msg)
@@ -60,9 +64,11 @@ impl fmt::Display for MMCError {
             MMCError::Network(ref err) => err.fmt(f),
             MMCError::Io(ref err) => err.fmt(f),
             MMCError::UnknownEndpoint(ref endpoint) => {
-                write!(f,
-                       "Unable to parse the endpoint {} into an Endpoint type",
-                       endpoint)
+                write!(
+                    f,
+                    "Unable to parse the endpoint {} into an Endpoint type",
+                    endpoint
+                )
             }
         }
     }
