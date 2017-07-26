@@ -2,14 +2,14 @@ version: 2
 jobs:
   test:
     docker:
-      - image: scorpil/rust:stable
+      - image: liuchong/rustup:stable
     steps:
       - checkout
       - run: cargo test
 
   build:
     docker:
-      - image: scorpil/rust:stable
+      - image: liuchong/rustup:stable
     steps:
       - checkout
       - run: cargo build --release
