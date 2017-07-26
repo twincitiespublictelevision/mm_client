@@ -1,32 +1,22 @@
 version: 2
 jobs:
-  checkout:
-    docker:
-      - image: scorpil/rust:stable
-    steps:
-      - checkout
-      - run: echo $CIRCLE_SHA1 > .circle-sha
-
   test:
     docker:
       - image: scorpil/rust:stable
     steps:
+      - checkout
       - run: cargo test
 
   build:
     docker:
       - image: scorpil/rust:stable
     steps:
+      - checkout
       - run: cargo build --release
 
 workflows:
   version: 2
   test_and_build:
     jobs:
-      - checkout
-      - test:
-          requires:
-            - checkout
-      - build:
-          requires:
-            - checkout
+      - test
+      - build
