@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: liuchong/rustup:stable
+    steps:
+      - checkout
+      - run: cargo test
+
+  build:
+    docker:
+      - image: liuchong/rustup:stable
+    steps:
+      - checkout
+      - run: cargo build --release
+
+workflows:
+  version: 2
+  test_and_build:
+    jobs:
+      - test
+      - build
