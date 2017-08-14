@@ -12,7 +12,7 @@ jobs:
       - image: liuchong/rustup:stable
     steps:
       - checkout
-      - run: cargo build --release
+      - run: cargo build --release --features cli
 
 workflows:
   version: 2
