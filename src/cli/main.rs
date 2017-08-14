@@ -138,7 +138,7 @@ fn rq_endpoint(
             };
 
             client.map_err(CLIError::Network).and_then(|cl| {
-                handle_client_response(cl.get(endpoint, id))
+                handle_client_response(cl.get(endpoint, id, None))
             })
         }
         None => Err(CLIError::EndpointConfigMissing),
