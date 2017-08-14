@@ -12,7 +12,7 @@ API or the staging API.
 ### Installation
 
 ``
-mm_client = "0.9.0"
+mm_client = "0.10.0"
 ``
 
 ### Optional features
