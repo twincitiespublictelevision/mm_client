@@ -37,7 +37,7 @@
 //! use mm_client::Endpoints;
 //!
 //! let client = Client::new("API_KEY", "API_SECRET").unwrap();
-//! let response = client.get(Endpoints::Asset, "asset-id");
+//! let response = client.get(Endpoints::Asset, "asset-id", None);
 //! ```
 //! The response string can then be handed off a JSON parser for further use.
 //!
@@ -101,8 +101,8 @@ mod tests {
         Client::staging(KEY, SECRET).unwrap()
     }
 
-    fn show_get(id: &str) -> MMCResult<String> {
-        sample_client().get(Endpoints::Show, id)
+    fn show_get(id: &str, params: Option<Params>) -> MMCResult<String> {
+        sample_client().get(Endpoints::Show, id, params)
     }
 
     fn show_list(params: Params) -> MMCResult<String> {
@@ -129,8 +129,13 @@ mod tests {
         Uuid::new_v4().hyphenated().to_string()
     }
 
-    fn mock_single(endpoint: &str, id: &str) -> Mock {
-        mock("GET", vec!["/", endpoint, "/", id, "/"].join("").as_str())
+    fn mock_single(endpoint: &str, id: &str, params: Option<&str>) -> Mock {
+        mock(
+            "GET",
+            vec!["/", endpoint, "/", id, "/", params.unwrap_or("")]
+                .join("")
+                .as_str(),
+        )
     }
 
     fn mock_create(parent: &str, p_id: &str, endpoint: &str) -> Mock {
@@ -178,13 +183,30 @@ mod tests {
     #[test]
     fn single_200() {
         let id = random_id();
-        mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str(), None)
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body("{\"name\":\"value\"}")
             .create_for(|| {
                 let test_response = String::from("{\"name\":\"value\"}");
-                assert_matches!(show_get(id.as_str()), Ok(test_response))
+                assert_matches!(show_get(id.as_str(), None), Ok(test_response))
+            })
+            .remove();
+    }
+
+    #[test]
+    fn single_with_params_200() {
+        let id = random_id();
+        let param_string = "?param1=value1&param2=value2";
+
+        mock_single("shows", id.as_str(), Some(param_string))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body("{\"name\":\"value\"}")
+            .create_for(|| {
+                let params = vec![("param1", "value1"), ("param2", "value2")];
+                let test_response = String::from("{\"name\":\"value\"}");
+                assert_matches!(show_get(id.as_str(), Some(params)), Ok(test_response))
             })
             .remove();
     }
@@ -227,7 +249,7 @@ mod tests {
     #[test]
     fn get_400() {
         let id = random_id();
-        mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str(), None)
             .with_status(400)
             .with_header("content-type", "application/json")
             .with_body("Failure message from the server")
@@ -237,7 +259,7 @@ mod tests {
                                                                       server",
                 ));
 
-                assert_matches!(show_get(id.as_str()), Err(bad_rq_error))
+                assert_matches!(show_get(id.as_str(), None), Err(bad_rq_error))
             })
             .remove();
     }
@@ -245,10 +267,10 @@ mod tests {
     #[test]
     fn get_401() {
         let id = random_id();
-        mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str(), None)
             .with_status(401)
             .create_for(|| {
-                assert_matches!(show_get(id.as_str()), Err(MMCError::NotAuthorized))
+                assert_matches!(show_get(id.as_str(), None), Err(MMCError::NotAuthorized))
             })
             .remove();
     }
@@ -256,10 +278,10 @@ mod tests {
     #[test]
     fn get_403() {
         let id = random_id();
-        mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str(), None)
             .with_status(403)
             .create_for(|| {
-                assert_matches!(show_get(id.as_str()), Err(MMCError::NotAuthorized))
+                assert_matches!(show_get(id.as_str(), None), Err(MMCError::NotAuthorized))
             })
             .remove();
     }
@@ -267,10 +289,10 @@ mod tests {
     #[test]
     fn get_404() {
         let id = random_id();
-        mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str(), None)
             .with_status(404)
             .create_for(|| {
-                assert_matches!(show_get(id.as_str()), Err(MMCError::ResourceNotFound))
+                assert_matches!(show_get(id.as_str(), None), Err(MMCError::ResourceNotFound))
             })
             .remove();
     }
@@ -278,11 +300,11 @@ mod tests {
     #[test]
     fn get_500() {
         let id = random_id();
-        mock_single("shows", id.as_str())
+        mock_single("shows", id.as_str(), None)
             .with_status(500)
             .create_for(|| {
                 assert_matches!(
-                    show_get(id.as_str()),
+                    show_get(id.as_str(), None),
                     Err(MMCError::APIFailure(StatusCode::InternalServerError))
                 )
             })
@@ -304,14 +326,14 @@ mod tests {
         ];
 
         for endpoint in endpoints.into_iter() {
-            mock_single(endpoint.to_string().as_str(), id.as_str())
+            mock_single(endpoint.to_string().as_str(), id.as_str(), None)
                 .with_status(200)
                 .with_header("content-type", "application/json")
                 .with_body("{\"name\":\"value\"}")
                 .create_for(|| {
                     let test_response = String::from("{\"name\":\"value\"}");
                     assert_matches!(
-                        sample_client().get(endpoint.clone(), id.as_str()),
+                        sample_client().get(endpoint.clone(), id.as_str(), None),
                         Ok(test_response)
                     )
                 })

@@ -128,9 +128,15 @@ impl Client {
 
     /// Attempts to fetch a single object with the requested id from the requested
     /// Media Manager API endpoint
-    pub fn get(&self, endpoint: Endpoints, id: &str) -> MMCResult<String> {
+    pub fn get(&self, endpoint: Endpoints, id: &str, params: Option<Params>) -> MMCResult<String> {
         self.rq_get(
-            Client::build_url(self.base.as_str(), None, endpoint, Some(id), vec![]).as_str(),
+            Client::build_url(
+                self.base.as_str(),
+                None,
+                endpoint,
+                Some(id),
+                params.unwrap_or(vec![]),
+            ).as_str(),
         )
     }
 
@@ -196,8 +202,8 @@ impl Client {
     }
 
     /// Shorthand for accessing a single asset
-    pub fn asset(&self, id: &str) -> MMCResult<String> {
-        self.get(Endpoints::Episode, id)
+    pub fn asset(&self, id: &str, params: Option<Params>) -> MMCResult<String> {
+        self.get(Endpoints::Episode, id, params)
     }
 
     /// Shorthand for accessing a list of changes
@@ -206,8 +212,8 @@ impl Client {
     }
 
     /// Shorthand for accessing a single collection
-    pub fn collection(&self, id: &str) -> MMCResult<String> {
-        self.get(Endpoints::Collection, id)
+    pub fn collection(&self, id: &str, params: Option<Params>) -> MMCResult<String> {
+        self.get(Endpoints::Collection, id, params)
     }
 
     /// Shorthand for accessing a list of collections
@@ -216,13 +222,13 @@ impl Client {
     }
 
     /// Shorthand for accessing a single episode
-    pub fn episode(&self, id: &str) -> MMCResult<String> {
-        self.get(Endpoints::Episode, id)
+    pub fn episode(&self, id: &str, params: Option<Params>) -> MMCResult<String> {
+        self.get(Endpoints::Episode, id, params)
     }
 
     /// Shorthand for accessing a single franchise
-    pub fn franchise(&self, id: &str) -> MMCResult<String> {
-        self.get(Endpoints::Franchise, id)
+    pub fn franchise(&self, id: &str, params: Option<Params>) -> MMCResult<String> {
+        self.get(Endpoints::Franchise, id, params)
     }
 
     /// Shorthand for accessing a list of franchises
@@ -231,18 +237,18 @@ impl Client {
     }
 
     /// Shorthand for accessing a single season
-    pub fn season(&self, id: &str) -> MMCResult<String> {
-        self.get(Endpoints::Season, id)
+    pub fn season(&self, id: &str, params: Option<Params>) -> MMCResult<String> {
+        self.get(Endpoints::Season, id, params)
     }
 
     /// Shorthand for accessing a single special
-    pub fn special(&self, id: &str) -> MMCResult<String> {
-        self.get(Endpoints::Special, id)
+    pub fn special(&self, id: &str, params: Option<Params>) -> MMCResult<String> {
+        self.get(Endpoints::Special, id, params)
     }
 
     /// Shorthand for accessing a single show
-    pub fn show(&self, id: &str) -> MMCResult<String> {
-        self.get(Endpoints::Show, id)
+    pub fn show(&self, id: &str, params: Option<Params>) -> MMCResult<String> {
+        self.get(Endpoints::Show, id, params)
     }
 
     /// Shorthand for accessing a list of shows
