@@ -4,8 +4,8 @@ extern crate serde;
 #[cfg(test)]
 use mockito;
 
-use self::reqwest::Client as NetworkClient;
 use self::reqwest::header::{Authorization, Basic, Connection};
+use self::reqwest::Client as NetworkClient;
 use self::reqwest::{Method, RequestBuilder, Response, StatusCode};
 use self::serde::Serialize;
 
@@ -114,16 +114,16 @@ impl Client {
     }
 
     fn client_builder(key: &str, secret: &str, base: &str) -> MMCResult<Client> {
-        NetworkClient::new().map_err(MMCError::Network).and_then(
-            |net_client| {
+        NetworkClient::new()
+            .map_err(MMCError::Network)
+            .and_then(|net_client| {
                 Ok(Client {
                     key: String::from(key),
                     secret: String::from(secret),
                     base: String::from(base),
                     client: net_client,
                 })
-            },
-        )
+            })
     }
 
     /// Attempts to fetch a single object with the requested id from the requested
@@ -136,15 +136,35 @@ impl Client {
                 endpoint,
                 Some(id),
                 params.unwrap_or(vec![]),
-            ).as_str(),
+            )
+            .as_str(),
         )
     }
 
     /// Attempts to fetch a list of objects from the requested Media Manager API endpoint augmented
     /// by the requested parameters
     pub fn list(&self, endpoint: Endpoints, params: Params) -> MMCResult<String> {
+        self.rq_get(Client::build_url(self.base.as_str(), None, endpoint, None, params).as_str())
+    }
+
+    /// Attempts to fetch a list of child objects of the requested Media Manager API type belonging
+    /// to the requested parent object augmeted by the requested parameters
+    pub fn child_list(
+        &self,
+        endpoint: Endpoints,
+        parent_id: &str,
+        parent_endpoint: Endpoints,
+        params: Option<Params>,
+    ) -> MMCResult<String> {
         self.rq_get(
-            Client::build_url(self.base.as_str(), None, endpoint, None, params).as_str(),
+            Client::build_url(
+                self.base.as_str(),
+                Some((parent_endpoint, parent_id)),
+                endpoint,
+                None,
+                params.unwrap_or(Vec::new()),
+            )
+            .as_str(),
         )
     }
 
@@ -164,7 +184,8 @@ impl Client {
                 endpoint,
                 None,
                 vec![],
-            ).as_str(),
+            )
+            .as_str(),
             body,
         )
     }
@@ -206,6 +227,16 @@ impl Client {
         self.get(Endpoints::Episode, id, params)
     }
 
+    /// Shorthand for accessing a list of assets
+    pub fn assets(
+        &self,
+        parent_id: &str,
+        parent_endpoint: Endpoints,
+        params: Option<Params>,
+    ) -> MMCResult<String> {
+        self.child_list(Endpoints::Asset, parent_id, parent_endpoint, params)
+    }
+
     /// Shorthand for accessing a list of changes
     pub fn changelog(&self, params: Params) -> MMCResult<String> {
         self.list(Endpoints::Changelog, params)
@@ -226,6 +257,11 @@ impl Client {
         self.get(Endpoints::Episode, id, params)
     }
 
+    /// Shorthand for accessing a list of episodes
+    pub fn episodes(&self, season_id: &str, params: Option<Params>) -> MMCResult<String> {
+        self.child_list(Endpoints::Episode, season_id, Endpoints::Season, params)
+    }
+
     /// Shorthand for accessing a single franchise
     pub fn franchise(&self, id: &str, params: Option<Params>) -> MMCResult<String> {
         self.get(Endpoints::Franchise, id, params)
@@ -244,6 +280,11 @@ impl Client {
     /// Shorthand for accessing a single special
     pub fn special(&self, id: &str, params: Option<Params>) -> MMCResult<String> {
         self.get(Endpoints::Special, id, params)
+    }
+
+    /// Shorthand for accessing a list of specials
+    pub fn specials(&self, show_id: &str, params: Option<Params>) -> MMCResult<String> {
+        self.child_list(Endpoints::Special, show_id, Endpoints::Show, params)
     }
 
     /// Shorthand for accessing a single show
@@ -281,10 +322,11 @@ impl Client {
         req.header(Authorization(Basic {
             username: self.key.to_string(),
             password: Some(self.secret.to_string()),
-        })).header(Connection::close())
-            .send()
-            .map_err(MMCError::Network)
-            .and_then(Client::handle_response)
+        }))
+        .header(Connection::close())
+        .send()
+        .map_err(MMCError::Network)
+        .and_then(Client::handle_response)
     }
 
     fn build_edit_url(
@@ -307,7 +349,6 @@ impl Client {
         id: Option<&str>,
         params: Params,
     ) -> String {
-
         // Create the new base for the returned url
         let mut url = base_url.to_string();
         url.push('/');
@@ -370,7 +411,6 @@ impl Client {
     }
 
     fn parse_response_body(mut response: Response) -> MMCResult<String> {
-
         // Create a buffer to read the response stream into
         let mut buffer = Vec::new();
 
