@@ -67,21 +67,21 @@ pub enum Endpoints {
 
 type ParentEndpoint<'a> = (Endpoints, &'a str);
 
-#[derive(Serialize)]
-struct MoveTarget {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    show: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    season: Option<String>,
-}
+// #[derive(Serialize)]
+// struct MoveTarget {
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     show: Option<String>,
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     season: Option<String>,
+// }
 
-#[derive(Serialize)]
-struct Move {
-    #[serde(rename = "type")]
-    _type: String,
-    id: String,
-    attributes: MoveTarget,
-}
+// #[derive(Serialize)]
+// struct Move {
+//     #[serde(rename = "type")]
+//     _type: String,
+//     id: String,
+//     attributes: MoveTarget,
+// }
 
 impl fmt::Display for Endpoints {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -234,7 +234,7 @@ impl Client {
     }
 
     /// Attempts to change the parent of an object
-    pub fn change_paret(
+    pub fn change_parent(
         &self,
         parent_endpoint: Endpoints,
         parent_id: &str,
@@ -250,6 +250,7 @@ impl Client {
                 vec![],
             )
             .as_str(),
+            &"".to_string(),
         )
     }
 
