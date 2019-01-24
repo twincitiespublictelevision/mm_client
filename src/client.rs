@@ -13,8 +13,8 @@ use std::fmt;
 use std::io::Read;
 use std::str;
 
-use error::MMCError;
-use error::MMCResult;
+use crate::error::MMCError;
+use crate::error::MMCResult;
 
 #[cfg(not(test))]
 const LIVE_URL: &'static str = "https://media.services.pbs.org/api/v1";
@@ -36,6 +36,45 @@ pub struct Client {
 }
 
 pub type Params<'a> = Vec<(&'a str, &'a str)>;
+
+type ParentEndpoint<'a> = (Endpoints, &'a str);
+
+#[derive(Serialize)]
+struct MoveTarget {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    show: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    season: Option<String>,
+}
+
+impl MoveTarget {
+    pub fn for_endpoint(endpoint: &Endpoints, id: &str) -> MMCResult<MoveTarget> {
+        match *endpoint {
+            Endpoints::Season => Ok(MoveTarget {
+                show: None,
+                season: Some(id.to_string()),
+            }),
+            Endpoints::Show => Ok(MoveTarget {
+                show: Some(id.to_string()),
+                season: None,
+            }),
+            _ => Err(MMCError::UnsupportedMoveParent(endpoint.to_string())),
+        }
+    }
+}
+
+#[derive(Serialize)]
+struct Move {
+    #[serde(rename = "type")]
+    _type: String,
+    id: String,
+    attributes: MoveTarget,
+}
+
+#[derive(Serialize)]
+struct MoveRequest {
+    data: Move,
+}
 
 /// The Media Manager endpoints that are supported by [Client](struct.Client.html)
 #[derive(Clone, Debug)]
@@ -65,23 +104,21 @@ pub enum Endpoints {
     Special,
 }
 
-type ParentEndpoint<'a> = (Endpoints, &'a str);
-
-// #[derive(Serialize)]
-// struct MoveTarget {
-//     #[serde(skip_serializing_if = "Option::is_none")]
-//     show: Option<String>,
-//     #[serde(skip_serializing_if = "Option::is_none")]
-//     season: Option<String>,
-// }
-
-// #[derive(Serialize)]
-// struct Move {
-//     #[serde(rename = "type")]
-//     _type: String,
-//     id: String,
-//     attributes: MoveTarget,
-// }
+impl Endpoints {
+    fn singular(&self) -> String {
+        match *self {
+            Endpoints::Asset => "asset",
+            Endpoints::Changelog => "changelog",
+            Endpoints::Collection => "collection",
+            Endpoints::Episode => "episode",
+            Endpoints::Franchise => "franchise",
+            Endpoints::Season => "season",
+            Endpoints::Show => "show",
+            Endpoints::Special => "special",
+        }
+        .to_string()
+    }
+}
 
 impl fmt::Display for Endpoints {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -241,6 +278,14 @@ impl Client {
         child_endpoint: Endpoints,
         child_id: &str,
     ) -> MMCResult<String> {
+        let move_request = MoveRequest {
+            data: Move {
+                _type: child_endpoint.singular(),
+                id: child_id.to_string(),
+                attributes: MoveTarget::for_endpoint(&parent_endpoint, parent_id)?,
+            },
+        };
+
         self.rq_patch(
             Client::build_url(
                 self.base.as_str(),
@@ -250,7 +295,7 @@ impl Client {
                 vec![],
             )
             .as_str(),
-            &"".to_string(),
+            &move_request,
         )
     }
 
@@ -453,7 +498,7 @@ impl Client {
 
         // Try to read the response into the buffer and return with a
         // io error in the case of a failure
-        try!(response.read_to_end(&mut buffer).map_err(MMCError::Io));
+        r#try!(response.read_to_end(&mut buffer).map_err(MMCError::Io));
 
         // Generate a string from the buffer
         let result = String::from_utf8(buffer);
