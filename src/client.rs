@@ -67,6 +67,22 @@ pub enum Endpoints {
 
 type ParentEndpoint<'a> = (Endpoints, &'a str);
 
+#[derive(Serialize)]
+struct MoveTarget {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    show: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    season: Option<String>,
+}
+
+#[derive(Serialize)]
+struct Move {
+    #[serde(rename = "type")]
+    _type: String,
+    id: String,
+    attributes: MoveTarget,
+}
+
 impl fmt::Display for Endpoints {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let string_form = match *self {
@@ -190,14 +206,14 @@ impl Client {
         )
     }
 
-    /// Attempts to fetch the edit object specified by the  [Endpoints](enum.Endpoints.html) and id
+    /// Attempts to fetch the edit object specified by the [Endpoints](enum.Endpoints.html) and id
     pub fn edit(&self, endpoint: Endpoints, id: &str) -> MMCResult<String> {
         self.rq_get(
             Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![]).as_str(),
         )
     }
 
-    /// Attempts to update the object specified by the  [Endpoints](enum.Endpoints.html) and id
+    /// Attempts to update the object specified by the [Endpoints](enum.Endpoints.html) and id
     pub fn update<T: Serialize>(
         &self,
         endpoint: Endpoints,
@@ -210,10 +226,30 @@ impl Client {
         )
     }
 
-    /// Attempts to delete the object specified by the  [Endpoints](enum.Endpoints.html) and id
+    /// Attempts to delete the object specified by the [Endpoints](enum.Endpoints.html) and id
     pub fn delete(&self, endpoint: Endpoints, id: &str) -> MMCResult<String> {
         self.rq_delete(
             Client::build_edit_url(self.base.as_str(), None, endpoint, Some(id), vec![]).as_str(),
+        )
+    }
+
+    /// Attempts to change the parent of an object
+    pub fn change_paret(
+        &self,
+        parent_endpoint: Endpoints,
+        parent_id: &str,
+        child_endpoint: Endpoints,
+        child_id: &str,
+    ) -> MMCResult<String> {
+        self.rq_patch(
+            Client::build_url(
+                self.base.as_str(),
+                None,
+                child_endpoint,
+                Some(child_id),
+                vec![],
+            )
+            .as_str(),
         )
     }
 

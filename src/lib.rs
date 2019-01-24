@@ -63,11 +63,13 @@ extern crate assert_matches;
 #[cfg(test)]
 extern crate mockito;
 #[cfg(test)]
-extern crate uuid;
-#[cfg(test)]
 extern crate reqwest;
 #[cfg(test)]
 extern crate serde;
+#[cfg(test)]
+extern crate uuid;
+#[macro_use]
+extern crate serde_derive;
 #[cfg(test)]
 extern crate serde_json;
 
@@ -75,8 +77,8 @@ mod client;
 mod error;
 pub use client::Client;
 pub use client::Endpoints;
-pub use error::MMCResult;
 pub use error::MMCError;
+pub use error::MMCResult;
 
 #[cfg(test)]
 mod tests {
@@ -88,10 +90,10 @@ mod tests {
     use uuid::Uuid;
 
     use client::Client;
-    use client::Params;
     use client::Endpoints;
-    use error::MMCResult;
+    use client::Params;
     use error::MMCError;
+    use error::MMCResult;
 
     const KEY: &'static str = "hello";
     const SECRET: &'static str = "world";
@@ -256,7 +258,7 @@ mod tests {
             .create_for(|| {
                 let bad_rq_error = MMCError::BadRequest(String::from(
                     "Failure message from the \
-                                                                      server",
+                     server",
                 ));
 
                 assert_matches!(show_get(id.as_str(), None), Err(bad_rq_error))

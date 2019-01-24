@@ -1,10 +1,10 @@
 [package]
-name = "mm_client"
-description = "Library for interfacing with PBS Media Manager API"
-version = "0.10.0"
-license = "Apache-2.0"
-repository = "https://github.com/twincitiespublictelevision/mm_client"
 authors = ["TPT <webmaster@tpt.org>"]
+description = "Library for interfacing with PBS Media Manager API"
+license = "Apache-2.0"
+name = "mm_client"
+repository = "https://github.com/twincitiespublictelevision/mm_client"
+version = "0.10.0"
 
 [[bin]]
 doc = true
@@ -17,6 +17,7 @@ test = true
 reqwest = "0.6"
 serde = "1.0"
 serde_json = "1.0"
+serde_derive = "1.0.85"
 
 [dependencies.app_dirs]
 optional = true
@@ -25,10 +26,6 @@ version = "1.1.1"
 [dependencies.clap]
 optional = true
 version = "2.2"
-
-[dependencies.serde_derive]
-optional = true
-version = "1.0"
 
 [dependencies.toml]
 optional = true
@@ -43,4 +40,8 @@ features = ["v4"]
 version = "0.2"
 
 [features]
-cli = ["app_dirs", "clap", "serde_derive", "toml"]
+cli = [
+    "app_dirs",
+    "clap",
+    "toml",
+]
