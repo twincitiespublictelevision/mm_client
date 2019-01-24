@@ -361,7 +361,7 @@ impl Client {
 
     /// Shorthand for accessing a list of seasons
     pub fn seasons(&self, show_id: &str, params: Option<Params>) -> MMCResult<String> {
-        self.child_list(Endpoints::Seasons, show_id, Endpoints::Show, params)
+        self.child_list(Endpoints::Season, show_id, Endpoints::Show, params)
     }
 
     /// Shorthand for accessing a single special
