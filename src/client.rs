@@ -306,7 +306,7 @@ impl Client {
 
     /// Shorthand for accessing a single asset
     pub fn asset(&self, id: &str, params: Option<Params>) -> MMCResult<String> {
-        self.get(Endpoints::Episode, id, params)
+        self.get(Endpoints::Asset, id, params)
     }
 
     /// Shorthand for accessing a list of assets
