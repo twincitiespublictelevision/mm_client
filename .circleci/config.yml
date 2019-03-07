@@ -2,14 +2,14 @@ version: 2
 jobs:
   test:
     docker:
-      - image: liuchong/rustup:stable
+      - image: clux/muslrust
     steps:
       - checkout
       - run: cargo test
 
   build:
     docker:
-      - image: liuchong/rustup:stable
+      - image: clux/muslrust
     steps:
       - checkout
       - run: cargo build --release --features cli
