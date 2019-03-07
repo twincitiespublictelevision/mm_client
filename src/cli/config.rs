@@ -1,9 +1,7 @@
-extern crate toml;
-
 use std::fs::File;
 use std::io::{self, BufRead, Read, Write};
 
-use error::CLIError;
+use crate::error::CLIError;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
@@ -24,11 +22,8 @@ impl Config {
         File::open(path)
             .map_err(CLIError::ConfigStorageFailure)
             .and_then(|mut file| {
-                file.read_to_string(&mut config_toml).unwrap_or_else(
-                    |err| {
-                        panic!("Error while reading config: [{}]", err)
-                    },
-                );
+                file.read_to_string(&mut config_toml)
+                    .unwrap_or_else(|err| panic!("Error while reading config: [{}]", err));
 
                 toml::from_str(&config_toml).or(Err(CLIError::InvalidConfig))
             })
@@ -55,10 +50,12 @@ impl Config {
 
     fn store(&self, path: &str) -> Result<(), CLIError> {
         let mut file = File::create(path)?;
-        file.write_all(&toml::to_string(&self)
-            .expect("Failed to parse config")
-            .into_bytes())
-            .map_err(CLIError::ConfigStorageFailure)
+        file.write_all(
+            &toml::to_string(&self)
+                .expect("Failed to parse config")
+                .into_bytes(),
+        )
+        .map_err(CLIError::ConfigStorageFailure)
     }
 
     fn prompt_for_input(prompt: &str) -> String {

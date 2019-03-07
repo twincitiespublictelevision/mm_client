@@ -34,8 +34,8 @@ use mm_client::MMCResult;
 
 use std::str::FromStr;
 
-use error::CLIError;
-use config::Config;
+use crate::error::CLIError;
+use crate::config::Config;
 
 fn main() {
 
