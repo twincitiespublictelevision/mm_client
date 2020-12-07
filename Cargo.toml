@@ -5,7 +5,7 @@ edition = "2018"
 license = "Apache-2.0"
 name = "mm_client"
 repository = "https://github.com/twincitiespublictelevision/mm_client"
-version = "0.11.0"
+version = "0.12.0"
 
 [[bin]]
 doc = true
@@ -15,36 +15,36 @@ required-features = ["cli"]
 test = true
 
 [dependencies]
-reqwest = "0.6"
-serde_derive = "1.0.85"
-serde_json = "1.0"
+reqwest = {version = "0.10.9", features = ["json", "blocking"]}
+serde_derive = "1.0.118"
+serde_json = "1.0.60"
 
 [dependencies.app_dirs]
 optional = true
-version = "1.1.1"
+version = "1.2.1"
 
 [dependencies.clap]
 optional = true
-version = "2.2"
+version = "2.33.3"
 
 [dependencies.serde]
 features = ["derive"]
-version = "1.0"
+version = "1.0.118"
 
 [dependencies.toml]
 optional = true
-version = "0.4"
+version = "0.5.7"
 
 [dev-dependencies]
-mockito = "0.15"
+mockito = "0.28.0"
 
 [dev-dependencies.uuid]
 features = ["v4"]
-version = "0.2"
+version = "0.8.1"
 
 [features]
 cli = [
-    "app_dirs",
-    "clap",
-    "toml",
+  "app_dirs",
+  "clap",
+  "toml",
 ]

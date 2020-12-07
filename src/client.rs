@@ -4,10 +4,10 @@ extern crate serde;
 #[cfg(test)]
 use mockito;
 
-use self::reqwest::header::{Authorization, Basic, Connection};
-use self::reqwest::Client as NetworkClient;
-use self::reqwest::{Method, RequestBuilder, Response, StatusCode};
-use self::serde::Serialize;
+use reqwest::blocking::{Client as NetworkClient, RequestBuilder, Response};
+use reqwest::header::CONNECTION;
+use reqwest::{Method, StatusCode};
+use serde::Serialize;
 
 use std::fmt;
 use std::io::Read;
@@ -167,7 +167,8 @@ impl Client {
     }
 
     fn client_builder(key: &str, secret: &str, base: &str) -> MMCResult<Client> {
-        NetworkClient::new()
+        NetworkClient::builder()
+            .build()
             .map_err(MMCError::Network)
             .and_then(|net_client| {
                 Ok(Client {
@@ -396,24 +397,21 @@ impl Client {
 
     // Handle update endpoints of the API
     fn rq_patch<T: Serialize>(&self, url: &str, body: &T) -> MMCResult<String> {
-        self.rq_send(self.client.request(Method::Patch, url).json(body))
+        self.rq_send(self.client.request(Method::PATCH, url).json(body))
     }
 
     // Handle update endpoints of the API
     fn rq_delete(&self, url: &str) -> MMCResult<String> {
-        self.rq_send(self.client.request(Method::Delete, url))
+        self.rq_send(self.client.request(Method::DELETE, url))
     }
 
     // Handle authentication and response mapping
     fn rq_send(&self, req: RequestBuilder) -> MMCResult<String> {
-        req.header(Authorization(Basic {
-            username: self.key.to_string(),
-            password: Some(self.secret.to_string()),
-        }))
-        .header(Connection::close())
-        .send()
-        .map_err(MMCError::Network)
-        .and_then(Client::handle_response)
+        req.basic_auth(self.key.to_string(), Some(self.secret.to_string()))
+            .header(CONNECTION, "close")
+            .send()
+            .map_err(MMCError::Network)
+            .and_then(Client::handle_response)
     }
 
     fn build_edit_url(
@@ -480,11 +478,11 @@ impl Client {
     }
 
     fn handle_response(response: Response) -> MMCResult<String> {
-        match *response.status() {
-            StatusCode::Ok | StatusCode::NoContent => Client::parse_success(response),
-            StatusCode::BadRequest => Client::parse_bad_request(response),
-            StatusCode::Unauthorized | StatusCode::Forbidden => Err(MMCError::NotAuthorized),
-            StatusCode::NotFound => Err(MMCError::ResourceNotFound),
+        match response.status() {
+            StatusCode::OK | StatusCode::NO_CONTENT => Client::parse_success(response),
+            StatusCode::BAD_REQUEST => Client::parse_bad_request(response),
+            StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => Err(MMCError::NotAuthorized),
+            StatusCode::NOT_FOUND => Err(MMCError::ResourceNotFound),
             x => Err(MMCError::APIFailure(x)),
         }
     }

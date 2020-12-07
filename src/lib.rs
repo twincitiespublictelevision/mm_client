@@ -125,7 +125,7 @@ mod tests {
     }
 
     fn random_id() -> String {
-        Uuid::new_v4().hyphenated().to_string()
+        Uuid::new_v4().to_hyphenated().to_string()
     }
 
     fn mock_single(endpoint: &str, id: &str, params: Option<&str>) -> Mock {
@@ -332,7 +332,7 @@ mod tests {
         let resp = show_get(id.as_str(), None);
 
         match resp.unwrap_err() {
-            MMCError::APIFailure(StatusCode::InternalServerError) => (),
+            MMCError::APIFailure(StatusCode::INTERNAL_SERVER_ERROR) => (),
             err => panic!("Expected APIFailure error but recieved {:?}", err),
         }
 
